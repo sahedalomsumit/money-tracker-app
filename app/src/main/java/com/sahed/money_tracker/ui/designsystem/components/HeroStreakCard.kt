@@ -70,7 +70,8 @@ fun EmeraldHeroBanner(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = EmeraldPalette.LightText.copy(alpha = 0.8f)
+                    fontWeight = FontWeight.Medium,
+                    color = EmeraldPalette.LightText.copy(alpha = 0.90f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
@@ -87,7 +88,8 @@ fun EmeraldHeroBanner(
                         Text(
                             text = unit,
                             style = MaterialTheme.typography.titleMedium,
-                            color = EmeraldPalette.LightText.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.SemiBold,
+                            color = EmeraldPalette.LightText.copy(alpha = 0.90f),
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                     }
@@ -97,7 +99,7 @@ fun EmeraldHeroBanner(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = EmeraldPalette.LightText.copy(alpha = 0.7f)
+                        color = EmeraldPalette.LightText.copy(alpha = 0.88f)
                     )
                 }
             }

@@ -9,20 +9,20 @@ object EmeraldPalette {
     val SoftEmerald = Color(0xFF2E9C7E)
     val DeepGreen   = Color(0xFF1B3B34)
     val EmeraldGlow = Color(0xFF3DBFA0)
-    val InvestBlue  = Color(0xFF2563EB) // Vibrant Sapphire Blue for Investing
+    val InvestBlue  = Color(0xFF3B82F6) // Accessible Vibrant Sapphire Blue for Investing
 
-    // Text
-    val DarkText    = Color(0xFF1A1A1A)
-    val LightText   = Color(0xFFFFFFFF)
-    val SubTextGrey = Color(0xFF8A9A96)
-    val LightSubText= Color(0xFF546E65)
+    // Text (High-contrast WCAG AAA compliant)
+    val DarkText    = Color(0xFF111816) // Rich very dark emerald-charcoal for light theme
+    val LightText   = Color(0xFFFFFFFF) // Crisp pure white for dark theme
+    val SubTextGrey = Color(0xFFAEC4BD) // High-contrast silver-mint secondary text for dark theme
+    val LightSubText= Color(0xFF384E47) // High-contrast deep sage secondary text for light theme
 
     // Status
     val SuccessGreen = Color(0xFF4CAF50)
     val WarningAmber = Color(0xFFFF9800)
     val ErrorRed     = Color(0xFFF44336)
-    val AccentPurple = Color(0xFFAB47BC)
-    val InactiveGrey = Color(0xFF546E65)
+    val AccentPurple = Color(0xFFBA68C8)
+    val InactiveGrey = Color(0xFF7A938B) // High-contrast inactive/muted tone
 
     // Dark Surfaces
     val DarkBackground = Color(0xFF0A0F0D)

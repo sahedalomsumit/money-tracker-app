@@ -41,12 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.toArgb
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
-import com.sahed.money_tracker.ui.theme.ChartBestMonth
 import com.sahed.money_tracker.ui.theme.ChartDefaultBar
 import com.sahed.money_tracker.ui.theme.ChartMutedBar
-import com.sahed.money_tracker.ui.theme.ChartWorstMonth
 import com.sahed.money_tracker.util.CurrencyHelper
 import com.sahed.money_tracker.util.DateUtils
 
@@ -80,18 +79,6 @@ fun MonthlyBarChart(
         } else {
             0.0
         }
-    }
-
-    // Best month has the highest income (> 0)
-    val bestMonth = remember(positiveMonths) {
-        positiveMonths.maxByOrNull { it.value }?.key
-    }
-
-    // Worst month has the lowest non-zero income, or if all > 0 have variation
-    val worstMonth = remember(positiveMonths, bestMonth) {
-        if (positiveMonths.size > 1) {
-            positiveMonths.minByOrNull { it.value }?.key
-        } else null
     }
 
     Column(
@@ -137,7 +124,7 @@ fun MonthlyBarChart(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Subheader: Tap hint / Selected month details on left, Legend tags on right
+        // Subheader: Tap hint / Selected month details
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,7 +137,7 @@ fun MonthlyBarChart(
                     text = "${DateUtils.getMonthFullName(selM)}: ${CurrencyHelper.format(amt, currencySymbol, currencyCode)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
             } else {
                 Text(
@@ -159,24 +146,14 @@ fun MonthlyBarChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            // Legend tags
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LegendDot(color = ChartBestMonth, text = "Peak")
-                Spacer(modifier = Modifier.width(8.dp))
-                if (worstMonth != null) {
-                    LegendDot(color = ChartWorstMonth, text = "Low")
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                LegendDot(color = ChartDefaultBar, text = "Avg")
-            }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
         // Canvas Bar Chart
         val axisColor = MaterialTheme.colorScheme.outline
-        val textColor = MaterialTheme.colorScheme.onSurfaceVariant
+        val defaultLabelColorInt = EmeraldTheme.extended.subText.toArgb()
+        val selectedLabelColorInt = MaterialTheme.colorScheme.onSurface.toArgb()
 
         Box(
             modifier = Modifier
@@ -212,7 +189,7 @@ fun MonthlyBarChart(
                 // Draw horizontal guide lines (3 steps: 0, 50%, 100%)
                 val steps = 3
                 val textPaint = android.graphics.Paint().apply {
-                    color = android.graphics.Color.GRAY
+                    color = defaultLabelColorInt
                     textSize = 24f
                     isAntiAlias = true
                 }
@@ -250,10 +227,9 @@ fun MonthlyBarChart(
                     val barX = leftPadding + (month - 1) * slotWidth + (slotWidth - barWidth) / 2f
                     val barY = topPadding + chartHeight - barHeight
 
+                    // Keep avg color (ChartDefaultBar) for all columns with income logged
                     val barColor = when {
                         month == selectedMonth -> Color.White
-                        month == bestMonth && amount > 0 -> ChartBestMonth
-                        month == worstMonth && amount > 0 -> ChartWorstMonth
                         amount > 0 -> ChartDefaultBar
                         else -> ChartMutedBar.copy(alpha = 0.4f)
                     }
@@ -266,19 +242,14 @@ fun MonthlyBarChart(
                         cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f)
                     )
 
-                    // Month label at bottom
-                    val monthLabel = DateUtils.getMonthShortName(month).take(1) // Single letter for compact mobile
+                    // Month label at bottom with high-contrast paint
                     drawIntoCanvas { canvas ->
                         val labelPaint = android.graphics.Paint().apply {
-                            color = if (month == selectedMonth) {
-                                android.graphics.Color.WHITE
-                            } else {
-                                android.graphics.Color.LTGRAY
-                            }
+                            color = if (month == selectedMonth) selectedLabelColorInt else defaultLabelColorInt
                             textSize = 26f
                             textAlign = android.graphics.Paint.Align.CENTER
                             isAntiAlias = true
-                            isFakeBoldText = (month == selectedMonth || month == bestMonth)
+                            isFakeBoldText = (month == selectedMonth)
                         }
                         canvas.nativeCanvas.drawText(
                             DateUtils.getMonthShortName(month),
@@ -290,22 +261,5 @@ fun MonthlyBarChart(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun LegendDot(color: Color, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(color, CircleShape)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = EmeraldTheme.extended.subText
-        )
     }
 }

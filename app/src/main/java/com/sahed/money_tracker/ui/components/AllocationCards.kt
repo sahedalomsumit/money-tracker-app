@@ -9,6 +9,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -469,7 +470,7 @@ fun AllocationMonthlyBreakdownBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = BottomSheetShape,
-        containerColor = EmeraldTheme.extended.surfaceTier2,
+        containerColor = MaterialTheme.colorScheme.background,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -477,7 +478,7 @@ fun AllocationMonthlyBreakdownBottomSheet(
                     .width(40.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(EmeraldTheme.extended.subText.copy(alpha = 0.4f))
+                    .background(EmeraldTheme.extended.subText.copy(alpha = 0.5f))
             )
         }
     ) {
@@ -499,8 +500,10 @@ fun AllocationMonthlyBreakdownBottomSheet(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
-                            .background(category.color.copy(alpha = 0.15f), CircleShape),
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(category.color.copy(alpha = 0.18f))
+                            .border(1.dp, category.color.copy(alpha = 0.35f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -530,57 +533,84 @@ fun AllocationMonthlyBreakdownBottomSheet(
 
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
-                        .background(EmeraldTheme.extended.surfaceTier3)
+                        .background(EmeraldTheme.extended.surfaceTier2)
+                        .border(1.dp, EmeraldTheme.extended.glassBorder, CircleShape)
                         .clickable(onClick = onDismissRequest),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
-                        tint = EmeraldTheme.extended.subText,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-            // Total Allocated Banner
+            // Improved Top Card (Rich Gradient Hero Banner with ambient watermark)
+            val topCardBrush = Brush.linearGradient(
+                colors = listOf(
+                    category.color.copy(alpha = 0.22f),
+                    EmeraldTheme.extended.surfaceTier1.copy(alpha = 0.92f),
+                    EmeraldTheme.extended.surfaceTier2
+                )
+            )
+
             EmeraldGlassCard(
                 modifier = Modifier.fillMaxWidth(),
+                backgroundBrush = topCardBrush,
                 highlightColor = category.color,
-                cornerRadius = 16.dp
+                cornerRadius = 20.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                // Subtle decorative watermark icon in top right corner
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .padding(end = 12.dp, top = 6.dp),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    Icon(
+                        imageVector = category.icon,
+                        contentDescription = null,
+                        tint = category.color.copy(alpha = 0.08f),
+                        modifier = Modifier.size(105.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Total ${category.label} in $selectedYear",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
                                 color = EmeraldTheme.extended.subText
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = CurrencyHelper.format(category.amount, currencySymbol, currencyCode),
-                                style = MaterialTheme.typography.headlineMedium,
+                                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp),
                                 fontWeight = FontWeight.ExtraBold,
                                 color = category.color
                             )
                         }
 
                         Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = category.color.copy(alpha = 0.15f)
+                            shape = RoundedCornerShape(12.dp),
+                            color = category.color.copy(alpha = 0.20f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, category.color.copy(alpha = 0.45f))
                         ) {
                             Text(
                                 text = "${String.format(java.util.Locale.US, "%.0f", category.percent)}%",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = category.color
@@ -588,26 +618,57 @@ fun AllocationMonthlyBreakdownBottomSheet(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Text(
-                        text = "💡 Monthly amounts allocated automatically based on your logged income for ${category.label}.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = EmeraldTheme.extended.subText,
-                        lineHeight = 18.sp
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = EmeraldTheme.extended.surfaceTier2.copy(alpha = 0.85f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldTheme.extended.glassBorder),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "💡 Monthly amounts allocated automatically based on your logged income for ${category.label}.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
             // Monthly Breakdown List Title
-            Text(
-                text = "12-Month Allocation Breakdown",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "12-Month Allocation Breakdown",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = EmeraldTheme.extended.surfaceTier2,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldTheme.extended.glassBorder)
+                ) {
+                    Text(
+                        text = "$selectedYear",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = EmeraldTheme.extended.subText,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -622,17 +683,17 @@ fun AllocationMonthlyBreakdownBottomSheet(
 
                     Surface(
                         shape = RoundedCornerShape(14.dp),
-                        color = if (isCurrentMonth) category.color.copy(alpha = 0.08f) else EmeraldTheme.extended.surfaceTier3,
+                        color = if (isCurrentMonth) category.color.copy(alpha = 0.10f) else EmeraldTheme.extended.surfaceTier1,
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            if (isCurrentMonth) category.color.copy(alpha = 0.4f) else EmeraldTheme.extended.glassBorder
+                            if (isCurrentMonth) category.color.copy(alpha = 0.5f) else EmeraldTheme.extended.glassBorder
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -645,10 +706,11 @@ fun AllocationMonthlyBreakdownBottomSheet(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     if (isCurrentMonth) {
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Surface(
                                             shape = RoundedCornerShape(6.dp),
-                                            color = category.color.copy(alpha = 0.18f)
+                                            color = category.color.copy(alpha = 0.20f),
+                                            border = androidx.compose.foundation.BorderStroke(0.8.dp, category.color.copy(alpha = 0.45f))
                                         ) {
                                             Text(
                                                 text = "Current",
@@ -688,7 +750,7 @@ fun AllocationMonthlyBreakdownBottomSheet(
                                         modifier = Modifier
                                             .size(28.dp)
                                             .clip(CircleShape)
-                                            .background(category.color.copy(alpha = 0.12f))
+                                            .background(category.color.copy(alpha = 0.15f))
                                             .clickable {
                                                 clipboardManager.setText(AnnotatedString(String.format(java.util.Locale.US, "%.2f", monthAllocated)))
                                                 Toast.makeText(context, "Copied amount ($formattedAllocated) to clipboard", Toast.LENGTH_SHORT).show()

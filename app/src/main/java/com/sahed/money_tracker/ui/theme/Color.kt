@@ -26,7 +26,7 @@ val LightSurfaceElevated = EmeraldPalette.Surface2Light
 val LightSurfaceBorder = EmeraldPalette.Surface3Light
 val LightTextPrimary = EmeraldPalette.DarkText
 val LightTextSecondary = EmeraldPalette.LightSubText
-val LightTextMuted = EmeraldPalette.SubTextGrey
+val LightTextMuted = Color(0xFF5A726A)
 
 // Category Accent Colors
 val SavingColor = EmeraldPalette.SoftEmerald   // Soft Emerald
