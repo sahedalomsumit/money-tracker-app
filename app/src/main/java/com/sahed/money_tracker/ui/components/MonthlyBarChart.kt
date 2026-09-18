@@ -39,6 +39,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.theme.ChartBestMonth
 import com.sahed.money_tracker.ui.theme.ChartDefaultBar
 import com.sahed.money_tracker.ui.theme.ChartMutedBar
@@ -81,8 +85,14 @@ fun MonthlyBarChart(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-            .padding(16.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(EmeraldTheme.extended.surfaceTier1)
+            .border(
+                width = 1.2.dp,
+                color = EmeraldTheme.extended.glassBorder,
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(18.dp)
     ) {
         // Chart Header with Selected Tooltip or Legends
         Row(
@@ -260,7 +270,7 @@ private fun LegendDot(color: Color, text: String) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = EmeraldTheme.extended.subText
         )
     }
 }

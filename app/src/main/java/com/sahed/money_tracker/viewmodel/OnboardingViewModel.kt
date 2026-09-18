@@ -2,7 +2,6 @@ package com.sahed.money_tracker.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sahed.money_tracker.data.model.CountryCurrency
 import com.sahed.money_tracker.data.model.UserProfile
 import com.sahed.money_tracker.data.repository.AllocationRepository
 import com.sahed.money_tracker.data.repository.AuthRepository
@@ -18,19 +17,17 @@ data class OnboardingUiState(
     val googleName: String = "",
     val googleEmail: String = "",
     val googlePhotoUrl: String = "",
-    val sex: String = "",
-    val country: String = "",
-    val currencyCode: String = "",
-    val currencySymbol: String = "",
+    val currencyCode: String = "USD",
+    val currencySymbol: String = "$",
     val isLoading: Boolean = false,
     val isComplete: Boolean = false,
     val errorMessage: String? = null
 ) {
     val isValid: Boolean
-        get() = sex.isNotBlank() && country.isNotBlank() && currencyCode.isNotBlank() && currencySymbol.isNotBlank()
+        get() = currencyCode.isNotBlank() && currencySymbol.isNotBlank()
 }
 
-class OnboardingViewModel(
+class OnboardingViewModel @JvmOverloads constructor(
     private val authRepository: AuthRepository = AuthRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository(),
     private val allocationRepository: AllocationRepository = AllocationRepository(),
@@ -53,27 +50,17 @@ class OnboardingViewModel(
         }
     }
 
-    fun selectSex(sex: String) {
-        _uiState.update { it.copy(sex = sex) }
-    }
-
-    fun selectCountry(country: CountryCurrency) {
-        _uiState.update {
-            it.copy(
-                country = country.countryName,
-                currencyCode = country.defaultCurrencyCode,
-                currencySymbol = country.defaultCurrencySymbol
-            )
-        }
-    }
-
-    fun overrideCurrency(code: String, symbol: String) {
+    fun selectCurrency(code: String, symbol: String) {
         _uiState.update {
             it.copy(
                 currencyCode = code,
                 currencySymbol = symbol
             )
         }
+    }
+
+    fun overrideCurrency(code: String, symbol: String) {
+        selectCurrency(code, symbol)
     }
 
     fun confirmAndContinue() {
@@ -88,8 +75,6 @@ class OnboardingViewModel(
                     name = state.googleName,
                     email = state.googleEmail,
                     photoUrl = state.googlePhotoUrl,
-                    sex = state.sex,
-                    country = state.country,
                     currencyCode = state.currencyCode,
                     currencySymbol = state.currencySymbol,
                     onboarded = true

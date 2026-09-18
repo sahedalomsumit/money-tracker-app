@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 data class DashboardUiState(
     val selectedYear: Int = DateUtils.getCurrentYear(),
-    val availableYears: List<Int> = listOf(DateUtils.getCurrentYear()),
+    val availableYears: List<Int> = DateUtils.getAvailableYears(),
     val entries: List<IncomeEntry> = emptyList(),
     val monthlyTotals: Map<Int, Double> = (1..12).associateWith { 0.0 },
     val totalYearIncome: Double = 0.0,
@@ -35,7 +35,7 @@ data class DashboardUiState(
     val selectedEntryForEdit: IncomeEntry? = null
 )
 
-class DashboardViewModel(
+class DashboardViewModel @JvmOverloads constructor(
     private val authRepository: AuthRepository = AuthRepository(),
     private val entryRepository: EntryRepository = EntryRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository(),
@@ -94,15 +94,9 @@ class DashboardViewModel(
         viewModelScope.launch {
             try {
                 entryRepository.getAllEntriesFlow(uid).collectLatest { allEntries ->
-                    val yearsWithData = allEntries.map { it.year }.distinct().sortedDescending()
-                    val currentY = DateUtils.getCurrentYear()
-                    val years = if (yearsWithData.isEmpty()) {
-                        listOf(currentY)
-                    } else if (!yearsWithData.contains(currentY)) {
-                        (listOf(currentY) + yearsWithData).sortedDescending()
-                    } else {
-                        yearsWithData
-                    }
+                    val defaultYears = DateUtils.getAvailableYears().toSet()
+                    val entryYears = allEntries.map { it.year }.toSet()
+                    val years = (defaultYears + entryYears).sortedDescending()
                     _uiState.update { it.copy(availableYears = years) }
                 }
             } catch (e: Exception) {

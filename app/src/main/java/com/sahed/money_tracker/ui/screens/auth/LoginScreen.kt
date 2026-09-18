@@ -46,7 +46,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.sahed.money_tracker.R
-import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.viewmodel.AuthUiState
 import com.sahed.money_tracker.viewmodel.AuthViewModel
 
@@ -132,7 +133,7 @@ fun LoginScreen(
                 // App Icon Presentation
                 Surface(
                     shape = RoundedCornerShape(28.dp),
-                    color = TealPrimary,
+                    color = EmeraldPalette.DeepGreen,
                     modifier = Modifier.size(100.dp),
                     shadowElevation = 12.dp
                 ) {
@@ -150,7 +151,14 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // App Title
+                // Welcome Title
+                Text(
+                    text = "Welcome to",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = EmeraldPalette.SoftEmerald
+                )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
@@ -164,7 +172,7 @@ fun LoginScreen(
                 Text(
                     text = stringResource(id = R.string.app_description),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = EmeraldTheme.extended.subText,
                     textAlign = TextAlign.Center,
                     lineHeight = 22.sp,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -174,18 +182,18 @@ fun LoginScreen(
 
                 // Google Sign-In Button
                 if (uiState is AuthUiState.Loading) {
-                    CircularProgressIndicator(color = TealPrimary)
+                    CircularProgressIndicator(color = EmeraldPalette.SoftEmerald)
                 } else {
                     Button(
                         onClick = { launchGoogleSignIn() },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
+                            containerColor = EmeraldTheme.extended.surfaceTier1,
                             contentColor = MaterialTheme.colorScheme.onSurface
                         ),
                         border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline
+                            1.2.dp,
+                            EmeraldTheme.extended.glassBorder
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -198,7 +206,7 @@ fun LoginScreen(
                             // Flat G letter in circle
                             Surface(
                                 shape = CircleShape,
-                                color = TealPrimary.copy(alpha = 0.15f),
+                                color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f),
                                 modifier = Modifier.size(28.dp)
                             ) {
                                 Box(
@@ -209,7 +217,7 @@ fun LoginScreen(
                                         text = "G",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = TealPrimary
+                                        color = EmeraldPalette.SoftEmerald
                                     )
                                 }
                             }

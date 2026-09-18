@@ -28,7 +28,7 @@ data class SettingsUiState(
     val allocationSuccess: Boolean = false
 )
 
-class SettingsViewModel(
+class SettingsViewModel @JvmOverloads constructor(
     application: Application,
     private val authRepository: AuthRepository = AuthRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository(),
@@ -51,54 +51,48 @@ class SettingsViewModel(
 
         // Listen to profile
         viewModelScope.launch {
-            profileRepository.getProfileFlow(uid).collectLatest { profile ->
-                if (profile != null) {
-                    _uiState.update { it.copy(userProfile = profile) }
+            try {
+                profileRepository.getProfileFlow(uid).collectLatest { profile ->
+                    if (profile != null) {
+                        _uiState.update { it.copy(userProfile = profile) }
+                    }
                 }
+            } catch (_: Exception) {
             }
         }
 
         // Listen to allocation settings
         viewModelScope.launch {
-            allocationRepository.getAllocationFlow(uid).collectLatest { settings ->
-                _uiState.update { it.copy(allocationSettings = settings) }
+            try {
+                allocationRepository.getAllocationFlow(uid).collectLatest { settings ->
+                    _uiState.update { it.copy(allocationSettings = settings) }
+                }
+            } catch (_: Exception) {
             }
         }
 
         // Listen to theme preferences
         viewModelScope.launch {
-            preferences.themeMode.collectLatest { mode ->
-                _uiState.update { it.copy(themeMode = mode) }
+            try {
+                preferences.themeMode.collectLatest { mode ->
+                    _uiState.update { it.copy(themeMode = mode) }
+                }
+            } catch (_: Exception) {
             }
         }
 
         // Listen to notifications preferences
         viewModelScope.launch {
-            preferences.notificationsEnabled.collectLatest { enabled ->
-                _uiState.update { it.copy(notificationsEnabled = enabled) }
+            try {
+                preferences.notificationsEnabled.collectLatest { enabled ->
+                    _uiState.update { it.copy(notificationsEnabled = enabled) }
+                }
+            } catch (_: Exception) {
             }
         }
     }
 
-    fun updateSex(newSex: String) {
-        val uid = authRepository.currentUser?.uid ?: return
-        viewModelScope.launch {
-            val updated = _uiState.value.userProfile.copy(sex = newSex)
-            profileRepository.updateProfile(uid, updated)
-        }
-    }
 
-    fun updateCountryAndCurrency(countryName: String, currencyCode: String, currencySymbol: String) {
-        val uid = authRepository.currentUser?.uid ?: return
-        viewModelScope.launch {
-            val updated = _uiState.value.userProfile.copy(
-                country = countryName,
-                currencyCode = currencyCode,
-                currencySymbol = currencySymbol
-            )
-            profileRepository.updateProfile(uid, updated)
-        }
-    }
 
     fun updateCurrencyOnly(currencyCode: String, currencySymbol: String) {
         val uid = authRepository.currentUser?.uid ?: return

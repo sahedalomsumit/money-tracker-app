@@ -33,12 +33,14 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -76,14 +78,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.sahed.money_tracker.data.preferences.ThemeMode
-import com.sahed.money_tracker.ui.components.CountryPickerDialog
 import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
+import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
+import com.sahed.money_tracker.ui.designsystem.components.EmeraldModalBottomSheet
+import com.sahed.money_tracker.ui.designsystem.components.EmeraldOptionRow
+import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.theme.ChartWorstMonth
-import com.sahed.money_tracker.ui.theme.TealPrimary
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.viewmodel.SettingsUiState
 import com.sahed.money_tracker.viewmodel.SettingsViewModel
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
@@ -94,9 +101,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
-    var showCountryPicker by remember { mutableStateOf(false) }
     var showCurrencyPicker by remember { mutableStateOf(false) }
-    var showSexPicker by remember { mutableStateOf(false) }
+    var showThemePicker by remember { mutableStateOf(false) }
     var showSignOutConfirm by remember { mutableStateOf(false) }
 
     // Allocation Edit Dialog
@@ -110,20 +116,6 @@ fun SettingsScreen(
         }
     }
 
-    if (showCountryPicker) {
-        CountryPickerDialog(
-            onDismissRequest = { showCountryPicker = false },
-            onCountrySelected = { country ->
-                viewModel.updateCountryAndCurrency(
-                    countryName = country.countryName,
-                    currencyCode = country.defaultCurrencyCode,
-                    currencySymbol = country.defaultCurrencySymbol
-                )
-                showCountryPicker = false
-            }
-        )
-    }
-
     if (showCurrencyPicker) {
         CurrencyPickerDialog(
             onDismissRequest = { showCurrencyPicker = false },
@@ -134,60 +126,44 @@ fun SettingsScreen(
         )
     }
 
-    if (showSexPicker) {
-        AlertDialog(
-            onDismissRequest = { showSexPicker = false },
-            title = { Text("Select Sex") },
-            text = {
-                Column {
-                    listOf("Male", "Female", "Others").forEach { sex ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable {
-                                    viewModel.updateSex(sex)
-                                    showSexPicker = false
-                                }
-                                .padding(vertical = 12.dp, horizontal = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = sex, style = MaterialTheme.typography.bodyLarge)
-                            if (uiState.userProfile.sex == sex) {
-                                Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = TealPrimary)
-                            }
+    if (showThemePicker) {
+        EmeraldModalBottomSheet(
+            onDismissRequest = { showThemePicker = false },
+            title = "Select Theme"
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                listOf(
+                    ThemeMode.DARK to "Dark",
+                    ThemeMode.LIGHT to "Light",
+                    ThemeMode.SYSTEM to "System default"
+                ).forEach { (mode, label) ->
+                    EmeraldOptionRow(
+                        label = label,
+                        isSelected = uiState.themeMode == mode,
+                        accentColor = EmeraldPalette.SoftEmerald,
+                        onClick = {
+                            viewModel.setThemeMode(mode)
+                            showThemePicker = false
                         }
-                    }
+                    )
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showSexPicker = false }) { Text("Cancel") }
             }
-        )
+        }
     }
 
     if (showSignOutConfirm) {
-        AlertDialog(
+        EmeraldAlertDialog(
             onDismissRequest = { showSignOutConfirm = false },
-            title = { Text("Sign Out") },
-            text = { Text("Are you sure you want to sign out from Money Tracker?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showSignOutConfirm = false
-                        viewModel.signOut()
-                        onSignOut()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ChartWorstMonth)
-                ) {
-                    Text("Sign Out")
-                }
+            onConfirm = {
+                showSignOutConfirm = false
+                viewModel.signOut()
+                onSignOut()
             },
-            dismissButton = {
-                TextButton(onClick = { showSignOutConfirm = false }) { Text("Cancel") }
-            }
+            title = "Sign Out",
+            message = "Are you sure you want to sign out from Money Tracker App?",
+            confirmText = "Sign Out",
+            cancelText = "Cancel",
+            isDestructive = true
         )
     }
 
@@ -252,13 +228,13 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .background(TealPrimary.copy(alpha = 0.15f), CircleShape),
+                                .background(EmeraldPalette.SoftEmerald.copy(alpha = 0.15f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = TealPrimary,
+                                tint = EmeraldPalette.SoftEmerald,
                                 modifier = Modifier.size(30.dp)
                             )
                         }
@@ -267,21 +243,12 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(14.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = uiState.userProfile.name.ifBlank { "Google User" },
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Synced from Google (Read-only)",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
+                        Text(
+                            text = uiState.userProfile.name.ifBlank { "Google User" },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = uiState.userProfile.email,
@@ -307,40 +274,37 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    // Country & Currency row
-                    SettingsItem(
-                        icon = Icons.Default.Language,
-                        title = "Country & Currency",
-                        subtitle = "${uiState.userProfile.country} (${uiState.userProfile.currencySymbol} ${uiState.userProfile.currencyCode})",
-                        onClick = { showCountryPicker = true }
-                    )
+                    val currencyOption = remember(uiState.userProfile.currencyCode) {
+                        com.sahed.money_tracker.util.CountriesData.allCurrencies.find { it.code == uiState.userProfile.currencyCode }
+                    }
+                    val currencySubtitle = if (currencyOption != null) {
+                        "${uiState.userProfile.currencySymbol} ${currencyOption.name}"
+                    } else if (uiState.userProfile.currencyCode.isNotBlank()) {
+                        "${uiState.userProfile.currencySymbol} ${uiState.userProfile.currencyCode}"
+                    } else {
+                        "Not set"
+                    }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-
-                    // Currency override row
+                    // Currency row (in down show currency icon and name)
                     SettingsItem(
-                        icon = Icons.Default.Language,
-                        title = "Change Currency Only",
-                        subtitle = "Current: ${uiState.userProfile.currencySymbol} ${uiState.userProfile.currencyCode}",
+                        icon = Icons.Default.Payments,
+                        title = "Currency",
+                        subtitle = currencySubtitle,
                         onClick = { showCurrencyPicker = true }
                     )
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
-                    // Sex row
+                    // Theme row (popup like sex option not directly)
                     SettingsItem(
-                        icon = Icons.Default.Person,
-                        title = "Sex",
-                        subtitle = uiState.userProfile.sex.ifBlank { "Not specified" },
-                        onClick = { showSexPicker = true }
-                    )
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-
-                    // Theme row
-                    ThemeSelectionRow(
-                        currentTheme = uiState.themeMode,
-                        onThemeSelect = { viewModel.setThemeMode(it) }
+                        icon = Icons.Default.SettingsBrightness,
+                        title = "Theme",
+                        subtitle = when (uiState.themeMode) {
+                            ThemeMode.DARK -> "Dark"
+                            ThemeMode.LIGHT -> "Light"
+                            ThemeMode.SYSTEM -> "System default"
+                        },
+                        onClick = { showThemePicker = true }
                     )
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
@@ -360,7 +324,7 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Default.Notifications,
                                 contentDescription = null,
-                                tint = TealPrimary,
+                                tint = EmeraldPalette.SoftEmerald,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
@@ -384,7 +348,7 @@ fun SettingsScreen(
                             onCheckedChange = { viewModel.setNotificationsEnabled(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = TealPrimary
+                                checkedTrackColor = EmeraldPalette.SoftEmerald
                             )
                         )
                     }
@@ -426,18 +390,18 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 SettingsItem(
-                    icon = Icons.Default.Person,
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    iconTint = EmeraldPalette.ErrorRed,
                     title = "Sign Out",
-                    subtitle = "Signed in as ${uiState.userProfile.email}",
-                    onClick = { showSignOutConfirm = true },
-                    titleColor = ChartWorstMonth
+                    subtitle = "Disconnect from Cloud",
+                    onClick = { showSignOutConfirm = true }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // 4. Support Section (Optional App-support Donation)
-            SectionHeader(title = "Support Money Tracker")
+            SectionHeader(title = "Support Money Tracker App")
 
             Surface(
                 shape = RoundedCornerShape(20.dp),
@@ -501,7 +465,7 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Money Tracker App v1.0.0",
+                    text = "Version 1.0.0",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -526,13 +490,13 @@ fun SettingsScreen(
                         text = "Built with ❤️ by Sahed",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = TealPrimary
+                        color = EmeraldPalette.SoftEmerald
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = null,
-                        tint = TealPrimary,
+                        tint = EmeraldPalette.SoftEmerald,
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -549,7 +513,7 @@ private fun SectionHeader(title: String) {
         text = title,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
-        color = TealPrimary,
+        color = EmeraldPalette.SoftEmerald,
         modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
     )
 }
@@ -560,7 +524,8 @@ private fun SettingsItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    titleColor: Color = MaterialTheme.colorScheme.onSurface
+    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    iconTint: Color = EmeraldPalette.SoftEmerald
 ) {
     Row(
         modifier = Modifier
@@ -577,7 +542,7 @@ private fun SettingsItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TealPrimary,
+                tint = iconTint,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(14.dp))
@@ -617,7 +582,7 @@ private fun ThemeSelectionRow(
             Icon(
                 imageVector = Icons.Default.SettingsBrightness,
                 contentDescription = null,
-                tint = TealPrimary,
+                tint = EmeraldPalette.SoftEmerald,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(14.dp))
@@ -670,10 +635,10 @@ private fun ThemeOptionChip(
 ) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (selected) TealPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        color = if (selected) EmeraldPalette.SoftEmerald.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (selected) TealPrimary else Color.Transparent
+            if (selected) EmeraldPalette.SoftEmerald else Color.Transparent
         ),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -687,7 +652,7 @@ private fun ThemeOptionChip(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) TealPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
@@ -695,7 +660,7 @@ private fun ThemeOptionChip(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) TealPrimary else MaterialTheme.colorScheme.onSurface
+                color = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -868,7 +833,9 @@ private fun AllocationEditDialog(
                 onClick = {
                     onSave(saving, savingLabel, invest, investLabel, donate, donateLabel, restLabel)
                 },
-                enabled = !isOver100 && !isSaving
+                enabled = !isOver100 && !isSaving,
+                colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -878,8 +845,9 @@ private fun AllocationEditDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cancel") }
+            TextButton(onClick = onDismissRequest) { Text("Cancel", color = EmeraldTheme.extended.subText) }
         },
-        shape = RoundedCornerShape(24.dp)
+        shape = DialogShape,
+        containerColor = EmeraldTheme.extended.surfaceTier2
     )
 }

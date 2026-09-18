@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +41,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.data.model.IncomeEntry
-import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.util.CurrencyHelper
 
 data class MainSourceSummary(
@@ -56,8 +58,11 @@ fun SourceBreakdownCard(
     totalYearIncome: Double,
     currencySymbol: String,
     currencyCode: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initiallyExpanded: Boolean = false
 ) {
+    var isExpanded by remember { mutableStateOf(initiallyExpanded) }
+
     // Compute breakdown by main source
     val breakdown = remember(entries, totalYearIncome) {
         if (totalYearIncome <= 0.0) emptyList()
@@ -85,49 +90,104 @@ fun SourceBreakdownCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(18.dp),
+        color = EmeraldTheme.extended.surfaceTier1,
         border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            1.2.dp,
+            EmeraldTheme.extended.glassBorder
         )
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
+            // Header Row (Clickable toggle)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(EmeraldPalette.SoftEmerald.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PieChart,
+                            contentDescription = null,
+                            tint = EmeraldPalette.SoftEmerald,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Income Sources",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (isExpanded) {
+                                "Breakdown by source & sub-source"
+                            } else {
+                                "${breakdown.size} source${if (breakdown.size > 1) "s" else ""} • ${CurrencyHelper.format(totalYearIncome, currencySymbol, currencyCode)}"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = EmeraldTheme.extended.subText
+                        )
+                    }
+                }
+
+                // Expand / Collapse Chevron Button
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(TealPrimary.copy(alpha = 0.15f), CircleShape),
+                        .background(
+                            color = if (isExpanded) EmeraldPalette.SoftEmerald.copy(alpha = 0.15f) else EmeraldTheme.extended.surfaceTier2,
+                            shape = CircleShape
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.PieChart,
-                        contentDescription = null,
-                        tint = TealPrimary,
-                        modifier = Modifier.size(18.dp)
+                        imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (isExpanded) "Collapse income sources" else "Expand income sources",
+                        tint = if (isExpanded) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.subText,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Income Sources Breakdown",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            // Collapsible Content
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(
+                        color = EmeraldTheme.extended.glassBorder,
+                        thickness = 1.dp
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
 
-            breakdown.forEach { item ->
-                SourceBreakdownItem(
-                    summary = item,
-                    currencySymbol = currencySymbol,
-                    currencyCode = currencyCode
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        breakdown.forEach { summary ->
+                            SourceBreakdownItem(
+                                summary = summary,
+                                currencySymbol = currencySymbol,
+                                currencyCode = currencyCode
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -143,7 +203,11 @@ private fun SourceBreakdownItem(
 
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        color = EmeraldTheme.extended.surfaceTier2,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            EmeraldTheme.extended.glassBorder
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
@@ -173,7 +237,7 @@ private fun SourceBreakdownItem(
                     Icon(
                         imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (expanded) "Collapse" else "Expand",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = EmeraldTheme.extended.subText,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -187,8 +251,8 @@ private fun SourceBreakdownItem(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = TealPrimary,
-                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                color = EmeraldPalette.SoftEmerald,
+                trackColor = EmeraldTheme.extended.surfaceTier3,
                 strokeCap = StrokeCap.Round
             )
 
@@ -201,13 +265,13 @@ private fun SourceBreakdownItem(
                 Text(
                     text = "${summary.subSourceBreakdown.size} sub-source${if (summary.subSourceBreakdown.size != 1) "s" else ""}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = EmeraldTheme.extended.subText
                 )
                 Text(
                     text = "${String.format(java.util.Locale.US, "%.1f", summary.percentage)}% of income",
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = TealPrimary
+                    fontWeight = FontWeight.Bold,
+                    color = EmeraldPalette.SoftEmerald
                 )
             }
 
@@ -222,24 +286,40 @@ private fun SourceBreakdownItem(
                         .fillMaxWidth()
                         .padding(top = 10.dp)
                 ) {
+                    HorizontalDivider(
+                        color = EmeraldTheme.extended.glassBorder,
+                        thickness = 1.dp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     summary.subSourceBreakdown.forEach { (subName, subAmount) ->
+                        val subPercent = if (summary.totalAmount > 0) (subAmount / summary.totalAmount) * 100.0 else 0.0
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp, horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "• $subName",
+                                text = "•  $subName",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = EmeraldTheme.extended.subText
                             )
-                            Text(
-                                text = CurrencyHelper.format(subAmount, currencySymbol, currencyCode),
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${String.format(java.util.Locale.US, "%.0f", subPercent)}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = EmeraldTheme.extended.subText
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = CurrencyHelper.format(subAmount, currencySymbol, currencyCode),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }

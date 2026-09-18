@@ -49,9 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.sahed.money_tracker.ui.components.CountryPickerDialog
 import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
-import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.viewmodel.OnboardingViewModel
 
 @Composable
@@ -63,7 +63,6 @@ fun OnboardingScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
-    var showCountryPicker by remember { mutableStateOf(false) }
     var showCurrencyPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isComplete) {
@@ -78,21 +77,11 @@ fun OnboardingScreen(
         }
     }
 
-    if (showCountryPicker) {
-        CountryPickerDialog(
-            onDismissRequest = { showCountryPicker = false },
-            onCountrySelected = { country ->
-                viewModel.selectCountry(country)
-                showCountryPicker = false
-            }
-        )
-    }
-
     if (showCurrencyPicker) {
         CurrencyPickerDialog(
             onDismissRequest = { showCurrencyPicker = false },
             onCurrencySelected = { currency ->
-                viewModel.overrideCurrency(currency.code, currency.symbol)
+                viewModel.selectCurrency(currency.code, currency.symbol)
                 showCurrencyPicker = false
             }
         )
@@ -111,7 +100,7 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Welcome to Money Tracker",
+                text = "Welcome to Money Tracker App",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -130,10 +119,10 @@ fun OnboardingScreen(
             // Google Profile Info (Read-Only)
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surface,
+                color = EmeraldTheme.extended.surfaceTier1,
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    1.2.dp,
+                    EmeraldTheme.extended.glassBorder
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -155,13 +144,13 @@ fun OnboardingScreen(
                             modifier = Modifier
                                 .size(54.dp)
                                 .clip(CircleShape)
-                                .background(TealPrimary.copy(alpha = 0.15f)),
+                                .background(EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = TealPrimary,
+                                tint = EmeraldPalette.SoftEmerald,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -181,7 +170,7 @@ fun OnboardingScreen(
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = "Synced from Google",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = EmeraldTheme.extended.subText,
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -190,7 +179,7 @@ fun OnboardingScreen(
                             text = uiState.googleEmail,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = EmeraldTheme.extended.subText
                         )
                     }
                 }
@@ -198,98 +187,7 @@ fun OnboardingScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Mandatory Field 1: Sex
-            Text(
-                text = "Sex *",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            val sexOptions = listOf("Male", "Female", "Others")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                sexOptions.forEach { option ->
-                    val isSelected = uiState.sex == option
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) TealPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) TealPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { viewModel.selectSex(option) }
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = option,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) TealPrimary else MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Mandatory Field 2: Country
-            Text(
-                text = "Country *",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    if (uiState.country.isNotBlank()) TealPrimary else MaterialTheme.colorScheme.outline
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { showCountryPicker = true }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = uiState.country.ifBlank { "Select your country" },
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (uiState.country.isNotBlank()) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (uiState.country.isNotBlank()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Select country",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Mandatory Field 3: Currency (Auto-suggested, overrideable)
+            // Primary Field: Currency
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -306,7 +204,7 @@ fun OnboardingScreen(
                     Text(
                         text = "Change currency",
                         style = MaterialTheme.typography.labelMedium,
-                        color = TealPrimary,
+                        color = EmeraldPalette.SoftEmerald,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
@@ -319,15 +217,15 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(14.dp),
+                color = EmeraldTheme.extended.surfaceTier1,
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    if (uiState.currencyCode.isNotBlank()) TealPrimary else MaterialTheme.colorScheme.outline
+                    1.2.dp,
+                    if (uiState.currencyCode.isNotBlank()) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .clickable { showCurrencyPicker = true }
             ) {
                 Row(
@@ -343,7 +241,7 @@ fun OnboardingScreen(
                                 text = uiState.currencySymbol,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TealPrimary
+                                color = EmeraldPalette.SoftEmerald
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
@@ -355,17 +253,17 @@ fun OnboardingScreen(
                         }
                     } else {
                         Text(
-                            text = "Auto-suggested when country is picked",
+                            text = "Select your preferred currency",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = EmeraldTheme.extended.subText
                         )
                     }
 
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Select currency",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = EmeraldTheme.extended.subText
                     )
                 }
             }
@@ -378,10 +276,10 @@ fun OnboardingScreen(
                 enabled = uiState.isValid && !uiState.isLoading,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary,
+                    containerColor = EmeraldPalette.SoftEmerald,
                     contentColor = Color.White,
-                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    disabledContainerColor = EmeraldTheme.extended.surfaceTier3,
+                    disabledContentColor = EmeraldTheme.extended.subText.copy(alpha = 0.6f)
                 ),
                 modifier = Modifier
                     .fillMaxWidth()

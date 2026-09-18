@@ -1,7 +1,9 @@
 package com.sahed.money_tracker.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -35,6 +39,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.data.model.CurrencyOption
+import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.util.CountriesData
 
 @Composable
@@ -45,10 +52,11 @@ fun CurrencyPickerDialog(
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredCurrencies = remember(searchQuery) {
+        val all = CountriesData.allCurrencies
         if (searchQuery.isBlank()) {
-            CountriesData.allCurrencies
+            all
         } else {
-            CountriesData.allCurrencies.filter {
+            all.filter {
                 it.code.contains(searchQuery, ignoreCase = true) ||
                         it.name.contains(searchQuery, ignoreCase = true) ||
                         it.symbol.contains(searchQuery, ignoreCase = true)
@@ -58,6 +66,8 @@ fun CurrencyPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
+        shape = DialogShape,
+        containerColor = EmeraldTheme.extended.surfaceTier2,
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -69,8 +79,20 @@ fun CurrencyPickerDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(EmeraldTheme.extended.surfaceTier3)
+                        .clickable(onClick = onDismissRequest),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = EmeraldTheme.extended.subText,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
         },
@@ -83,11 +105,15 @@ fun CurrencyPickerDialog(
                         Text(
                             "Search by code, name or symbol...",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Normal
+                            color = EmeraldTheme.extended.subText
                         )
                     },
                     leadingIcon = {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = EmeraldTheme.extended.subText
+                        )
                     },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -107,7 +133,7 @@ fun CurrencyPickerDialog(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
                                 .clickable { onCurrencySelected(currency) },
-                            color = MaterialTheme.colorScheme.surface
+                            color = EmeraldTheme.extended.surfaceTier2
                         ) {
                             Row(
                                 modifier = Modifier
@@ -128,7 +154,7 @@ fun CurrencyPickerDialog(
                                         text = currency.name,
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.Normal,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = EmeraldTheme.extended.subText
                                     )
                                 }
 
@@ -136,13 +162,13 @@ fun CurrencyPickerDialog(
 
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
                                 ) {
                                     Text(
                                         text = currency.symbol,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = EmeraldPalette.SoftEmerald,
                                         fontWeight = FontWeight.ExtraBold
                                     )
                                 }
@@ -155,9 +181,8 @@ fun CurrencyPickerDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
+                Text("Cancel", color = EmeraldTheme.extended.subText)
             }
-        },
-        shape = RoundedCornerShape(24.dp)
+        }
     )
 }

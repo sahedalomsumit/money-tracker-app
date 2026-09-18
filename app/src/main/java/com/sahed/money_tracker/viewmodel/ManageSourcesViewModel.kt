@@ -21,7 +21,7 @@ data class ManageSourcesUiState(
     val isLoading: Boolean = false
 )
 
-class ManageSourcesViewModel(
+class ManageSourcesViewModel @JvmOverloads constructor(
     private val authRepository: AuthRepository = AuthRepository(),
     private val sourceRepository: SourceRepository = SourceRepository()
 ) : ViewModel() {
@@ -37,6 +37,9 @@ class ManageSourcesViewModel(
 
     private fun loadSources() {
         val uid = authRepository.currentUser?.uid ?: return
+        viewModelScope.launch {
+            sourceRepository.seedDefaultSourcesIfMissing(uid)
+        }
         viewModelScope.launch {
             sourceRepository.getMainSourcesFlow(uid).collectLatest { sources ->
                 _uiState.update { current ->
@@ -120,6 +123,35 @@ class ManageSourcesViewModel(
         val mainSource = _uiState.value.selectedMainSource ?: return
         viewModelScope.launch {
             sourceRepository.deleteSubSource(uid, mainSource.id, subSourceId)
+        }
+    }
+
+    fun moveMainSource(fromIndex: Int, toIndex: Int) {
+        val uid = authRepository.currentUser?.uid ?: return
+        val currentList = _uiState.value.mainSources.toMutableList()
+        if (fromIndex !in currentList.indices || toIndex !in currentList.indices || fromIndex == toIndex) return
+
+        val item = currentList.removeAt(fromIndex)
+        currentList.add(toIndex, item)
+        _uiState.update { it.copy(mainSources = currentList) }
+
+        viewModelScope.launch {
+            sourceRepository.reorderMainSources(uid, currentList)
+        }
+    }
+
+    fun moveSubSource(fromIndex: Int, toIndex: Int) {
+        val uid = authRepository.currentUser?.uid ?: return
+        val mainSource = _uiState.value.selectedMainSource ?: return
+        val currentList = _uiState.value.subSourcesForSelected.toMutableList()
+        if (fromIndex !in currentList.indices || toIndex !in currentList.indices || fromIndex == toIndex) return
+
+        val item = currentList.removeAt(fromIndex)
+        currentList.add(toIndex, item)
+        _uiState.update { it.copy(subSourcesForSelected = currentList) }
+
+        viewModelScope.launch {
+            sourceRepository.reorderSubSources(uid, mainSource.id, currentList)
         }
     }
 }

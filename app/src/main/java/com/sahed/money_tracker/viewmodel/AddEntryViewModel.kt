@@ -13,6 +13,7 @@ import com.sahed.money_tracker.data.repository.EntryRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
 import com.sahed.money_tracker.util.DateUtils
+import com.sahed.money_tracker.util.MathExpressionEvaluator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,13 +37,13 @@ data class AddEntryUiState(
     val errorMessage: String? = null
 ) {
     val salaryAmount: Double
-        get() = salaryInput.toDoubleOrNull() ?: 0.0
+        get() = MathExpressionEvaluator.evaluate(salaryInput) ?: salaryInput.toDoubleOrNull() ?: 0.0
 
     val isValid: Boolean
         get() = salaryAmount > 0.0 && selectedMainSource != null
 }
 
-class AddEntryViewModel(
+class AddEntryViewModel @JvmOverloads constructor(
     private val authRepository: AuthRepository = AuthRepository(),
     private val entryRepository: EntryRepository = EntryRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository(),
@@ -80,6 +81,9 @@ class AddEntryViewModel(
 
         // Listen to main sources
         viewModelScope.launch {
+            sourceRepository.seedDefaultSourcesIfMissing(uid)
+        }
+        viewModelScope.launch {
             sourceRepository.getMainSourcesFlow(uid).collectLatest { sources ->
                 _uiState.update { current ->
                     val defaultMain = current.selectedMainSource ?: sources.firstOrNull()
@@ -104,9 +108,22 @@ class AddEntryViewModel(
     }
 
     fun setSalaryInput(input: String) {
-        // Keep valid numeric / decimal chars only
-        val filtered = input.filter { it.isDigit() || it == '.' }
+        val allowed = "0123456789.+-*×/÷() "
+        val filtered = input.filter { it in allowed }
         _uiState.update { it.copy(salaryInput = filtered, errorMessage = null) }
+    }
+
+    /**
+     * Resolves the current math expression in the salary input and replaces it
+     * with the evaluated numeric result (e.g. "(30+30)-10" -> "50").
+     */
+    fun evaluateAndApplySalary() {
+        val current = _uiState.value.salaryInput
+        val evaluated = MathExpressionEvaluator.evaluate(current) ?: current.toDoubleOrNull()
+        if (evaluated != null && evaluated > 0.0) {
+            val formatted = MathExpressionEvaluator.formatResult(evaluated)
+            _uiState.update { it.copy(salaryInput = formatted, errorMessage = null) }
+        }
     }
 
     fun selectMainSource(source: MainSource) {

@@ -13,12 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,12 +38,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.ui.components.AllocationBreakdownGrid
-import com.sahed.money_tracker.ui.components.DismissibleEntryItem
 import com.sahed.money_tracker.ui.components.EditEntryDialog
+import com.sahed.money_tracker.ui.components.EntryItemCard
 import com.sahed.money_tracker.ui.components.MonthlyBarChart
 import com.sahed.money_tracker.ui.components.SourceBreakdownCard
 import com.sahed.money_tracker.ui.components.TotalIncomeCard
-import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.ui.designsystem.components.EmeraldGlassCard
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.viewmodel.DashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,25 +95,25 @@ fun DashboardScreen(
                     Column {
                         Text(
                             text = "Dashboard",
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Track your income & allocations",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = EmeraldTheme.extended.subText
                         )
                     }
 
-                    // Year selector dropdown button
+                    // Year selector dropdown button (Surface Tier 2)
                     Box {
                         Surface(
                             shape = RoundedCornerShape(14.dp),
-                            color = MaterialTheme.colorScheme.surface,
+                            color = EmeraldTheme.extended.surfaceTier2,
                             border = androidx.compose.foundation.BorderStroke(
                                 1.dp,
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                                EmeraldTheme.extended.glassBorder
                             ),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(14.dp))
@@ -126,13 +127,13 @@ fun DashboardScreen(
                                     text = uiState.selectedYear.toString(),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = TealPrimary
+                                    color = EmeraldPalette.SoftEmerald
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
                                     contentDescription = "Select Year",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = EmeraldTheme.extended.subText
                                 )
                             }
                         }
@@ -147,7 +148,7 @@ fun DashboardScreen(
                                         Text(
                                             text = year.toString(),
                                             fontWeight = if (year == uiState.selectedYear) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (year == uiState.selectedYear) TealPrimary else MaterialTheme.colorScheme.onSurface
+                                            color = if (year == uiState.selectedYear) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurface
                                         )
                                     },
                                     onClick = {
@@ -171,16 +172,7 @@ fun DashboardScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 90.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Monthly Bar Chart
-            item {
-                MonthlyBarChart(
-                    monthlyTotals = uiState.monthlyTotals,
-                    currencySymbol = uiState.userProfile.currencySymbol,
-                    currencyCode = uiState.userProfile.currencyCode
-                )
-            }
-
-            // 2. Total Income Card
+            // 1. Total Income Card (Emerald Hero Banner)
             item {
                 TotalIncomeCard(
                     totalSalary = uiState.totalYearIncome,
@@ -190,17 +182,28 @@ fun DashboardScreen(
                 )
             }
 
-            // 3. 4-Category Allocation Breakdown Grid (Saving, Investing, Donate, Rest)
+            // 2. 4-Category Allocation Breakdown Grid (Saving, Investing, Donate, Rest)
             item {
                 AllocationBreakdownGrid(
                     totalSalary = uiState.totalYearIncome,
                     allocation = uiState.allocationSettings,
                     currencySymbol = uiState.userProfile.currencySymbol,
+                    currencyCode = uiState.userProfile.currencyCode,
+                    monthlyTotals = uiState.monthlyTotals,
+                    selectedYear = uiState.selectedYear
+                )
+            }
+
+            // 3. Monthly Bar Chart (Monthly Overview)
+            item {
+                MonthlyBarChart(
+                    monthlyTotals = uiState.monthlyTotals,
+                    currencySymbol = uiState.userProfile.currencySymbol,
                     currencyCode = uiState.userProfile.currencyCode
                 )
             }
 
-            // 4. Source Breakdown Card with Drilldown
+            // 4. Source Breakdown Card with Drilldown (Collapsible & Expandable)
             item {
                 SourceBreakdownCard(
                     entries = uiState.entries,
@@ -225,26 +228,14 @@ fun DashboardScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    if (uiState.entries.isNotEmpty()) {
-                        Text(
-                            text = "Swipe left to delete",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
 
             // 6. Entries List items
             if (uiState.entries.isEmpty()) {
                 item {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                        ),
+                    EmeraldGlassCard(
+                        cornerRadius = 18.dp,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
@@ -257,7 +248,7 @@ fun DashboardScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                tint = EmeraldTheme.extended.subText.copy(alpha = 0.5f),
                                 modifier = Modifier.height(44.dp)
                             )
                             Spacer(modifier = Modifier.height(10.dp))
@@ -265,28 +256,25 @@ fun DashboardScreen(
                                 text = "No income logged for ${uiState.selectedYear}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = EmeraldTheme.extended.subText
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Tap the + button below to add an entry",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TealPrimary
+                                color = EmeraldPalette.SoftEmerald
                             )
                         }
                     }
                 }
             } else {
                 items(uiState.entries, key = { it.id }) { entry ->
-                    DismissibleEntryItem(
+                    EntryItemCard(
                         entry = entry,
                         currencySymbol = uiState.userProfile.currencySymbol,
                         currencyCode = uiState.userProfile.currencyCode,
                         onClick = {
                             viewModel.openEditEntryDialog(entry)
-                        },
-                        onDelete = {
-                            viewModel.deleteEntry(entry.id)
                         }
                     )
                 }

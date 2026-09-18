@@ -19,7 +19,7 @@ sealed interface AuthUiState {
     data class Error(val message: String) : AuthUiState
 }
 
-class AuthViewModel(
+class AuthViewModel @JvmOverloads constructor(
     private val authRepository: AuthRepository = AuthRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository()
 ) : ViewModel() {

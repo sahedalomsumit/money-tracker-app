@@ -135,16 +135,40 @@ class SourceRepository {
             .await()
     }
 
+    suspend fun reorderMainSources(uid: String, sources: List<MainSource>) {
+        val db = firestore ?: return
+        val batch = db.batch()
+        sources.forEachIndexed { index, source ->
+            val docRef = db.collection("users").document(uid)
+                .collection("mainSources").document(source.id)
+            batch.update(docRef, "order", index)
+        }
+        batch.commit().await()
+    }
+
+    suspend fun reorderSubSources(uid: String, mainSourceId: String, subSources: List<SubSource>) {
+        val db = firestore ?: return
+        val batch = db.batch()
+        subSources.forEachIndexed { index, subSource ->
+            val docRef = db.collection("users").document(uid)
+                .collection("mainSources").document(mainSourceId)
+                .collection("subSources").document(subSource.id)
+            batch.update(docRef, "order", index)
+        }
+        batch.commit().await()
+    }
+
     suspend fun seedDefaultSourcesIfMissing(uid: String) {
         val db = firestore ?: return
         val colRef = db.collection("users").document(uid).collection("mainSources")
         try {
-            val snapshot = colRef.limit(1).get().await()
+            val snapshot = colRef.get().await()
             if (snapshot.isEmpty) {
                 val defaultMainSources = listOf(
                     "Job",
                     "Business",
                     "Freelancing",
+                    "Govt. Benefits",
                     "Tax Return",
                     "Gift"
                 )
@@ -158,6 +182,38 @@ class SourceRepository {
                             mainDoc.collection("subSources").document()
                                 .set(mapOf("name" to subName, "order" to subIndex)).await()
                         }
+                    } else if (name == "Govt. Benefits") {
+                        val subSources = listOf("Unemployment", "Housing Allowance", "Language")
+                        for ((subIndex, subName) in subSources.withIndex()) {
+                            mainDoc.collection("subSources").document()
+                                .set(mapOf("name" to subName, "order" to subIndex)).await()
+                        }
+                    }
+                }
+            } else {
+                // Ensure Govt. Benefits exists for existing users
+                val govtDoc = snapshot.documents.find {
+                    val n = it.getString("name")
+                    n?.equals("Govt. Benefits", ignoreCase = true) == true ||
+                    n?.equals("Govt Benefits", ignoreCase = true) == true
+                }
+                val govtDocRef = if (govtDoc == null) {
+                    val newDoc = colRef.document()
+                    newDoc.set(mapOf("name" to "Govt. Benefits", "order" to snapshot.size())).await()
+                    newDoc
+                } else {
+                    govtDoc.reference
+                }
+
+                // Check sub-sources for Govt. Benefits
+                val subCol = govtDocRef.collection("subSources")
+                val subSnapshot = subCol.get().await()
+                val existingSubNames = subSnapshot.documents.mapNotNull { it.getString("name")?.lowercase() }.toSet()
+                val requiredSubs = listOf("Unemployment", "Housing Allowance", "Language")
+                var nextOrder = subSnapshot.size()
+                for (subName in requiredSubs) {
+                    if (subName.lowercase() !in existingSubNames) {
+                        subCol.document().set(mapOf("name" to subName, "order" to nextOrder++)).await()
                     }
                 }
             }

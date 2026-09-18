@@ -28,4 +28,11 @@ object DateUtils {
     fun getMonthFullName(month: Int): String {
         return if (month in 1..12) monthFullNames[month - 1] else "Month $month"
     }
+
+    fun getAvailableYears(): List<Int> {
+        val currentYear = getCurrentYear()
+        val startYear = 2021
+        val maxYear = if (currentYear >= startYear) currentYear else startYear
+        return (startYear..maxYear).toList().reversed()
+    }
 }

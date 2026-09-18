@@ -18,11 +18,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,6 +47,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,8 +59,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.data.model.MainSource
 import com.sahed.money_tracker.data.model.SubSource
+import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
+import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.theme.ChartWorstMonth
-import com.sahed.money_tracker.ui.theme.TealPrimary
 import com.sahed.money_tracker.viewmodel.ManageSourcesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,6 +84,12 @@ fun ManageSourcesScreen(
     var deleteSubSourceConfirm by remember { mutableStateOf<SubSource?>(null) }
 
     var inputName by remember { mutableStateOf("") }
+
+    var draggingMainSourceId by remember { mutableStateOf<String?>(null) }
+    var mainSourceDragOffset by remember { mutableFloatStateOf(0f) }
+
+    var draggingSubSourceId by remember { mutableStateOf<String?>(null) }
+    var subSourceDragOffset by remember { mutableFloatStateOf(0f) }
 
     // Dialog: Add Main Source
     if (showAddMainDialog) {
@@ -100,15 +116,18 @@ fun ManageSourcesScreen(
                             showAddMainDialog = false
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                    shape = RoundedCornerShape(12.dp),
                     enabled = inputName.isNotBlank()
                 ) {
                     Text("Add")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAddMainDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showAddMainDialog = false }) { Text("Cancel", color = EmeraldTheme.extended.subText) }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = DialogShape,
+            containerColor = EmeraldTheme.extended.surfaceTier2
         )
     }
 
@@ -136,39 +155,34 @@ fun ManageSourcesScreen(
                             editingMainSource = null
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                    shape = RoundedCornerShape(12.dp),
                     enabled = renameText.isNotBlank()
                 ) {
                     Text("Save")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { editingMainSource = null }) { Text("Cancel") }
+                TextButton(onClick = { editingMainSource = null }) { Text("Cancel", color = EmeraldTheme.extended.subText) }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = DialogShape,
+            containerColor = EmeraldTheme.extended.surfaceTier2
         )
     }
 
     // Dialog: Delete Main Source Confirmation
     if (deleteMainSourceConfirm != null) {
-        AlertDialog(
+        EmeraldAlertDialog(
             onDismissRequest = { deleteMainSourceConfirm = null },
-            title = { Text("Delete Main Source?") },
-            text = { Text("Are you sure you want to delete '${deleteMainSourceConfirm!!.name}' and its sub-sources?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteMainSource(deleteMainSourceConfirm!!.id)
-                        deleteMainSourceConfirm = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ChartWorstMonth)
-                ) {
-                    Text("Delete")
-                }
+            onConfirm = {
+                viewModel.deleteMainSource(deleteMainSourceConfirm!!.id)
+                deleteMainSourceConfirm = null
             },
-            dismissButton = {
-                TextButton(onClick = { deleteMainSourceConfirm = null }) { Text("Cancel") }
-            },
-            shape = RoundedCornerShape(20.dp)
+            title = "Delete Main Source?",
+            message = "Are you sure you want to delete '${deleteMainSourceConfirm!!.name}' and its sub-sources?",
+            confirmText = "Delete",
+            cancelText = "Cancel",
+            isDestructive = true
         )
     }
 
@@ -182,7 +196,7 @@ fun ManageSourcesScreen(
                     Text(
                         text = "Adding to: ${uiState.selectedMainSource?.name ?: ""}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = EmeraldTheme.extended.subText
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     OutlinedTextField(
@@ -205,15 +219,18 @@ fun ManageSourcesScreen(
                             showAddSubDialog = false
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                    shape = RoundedCornerShape(12.dp),
                     enabled = inputName.isNotBlank()
                 ) {
                     Text("Add")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAddSubDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showAddSubDialog = false }) { Text("Cancel", color = EmeraldTheme.extended.subText) }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = DialogShape,
+            containerColor = EmeraldTheme.extended.surfaceTier2
         )
     }
 
@@ -241,39 +258,34 @@ fun ManageSourcesScreen(
                             editingSubSource = null
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                    shape = RoundedCornerShape(12.dp),
                     enabled = renameText.isNotBlank()
                 ) {
                     Text("Save")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { editingSubSource = null }) { Text("Cancel") }
+                TextButton(onClick = { editingSubSource = null }) { Text("Cancel", color = EmeraldTheme.extended.subText) }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = DialogShape,
+            containerColor = EmeraldTheme.extended.surfaceTier2
         )
     }
 
     // Dialog: Delete Sub Source Confirmation
     if (deleteSubSourceConfirm != null) {
-        AlertDialog(
+        EmeraldAlertDialog(
             onDismissRequest = { deleteSubSourceConfirm = null },
-            title = { Text("Delete Sub-Source?") },
-            text = { Text("Are you sure you want to delete '${deleteSubSourceConfirm!!.name}'?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteSubSource(deleteSubSourceConfirm!!.id)
-                        deleteSubSourceConfirm = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ChartWorstMonth)
-                ) {
-                    Text("Delete")
-                }
+            onConfirm = {
+                viewModel.deleteSubSource(deleteSubSourceConfirm!!.id)
+                deleteSubSourceConfirm = null
             },
-            dismissButton = {
-                TextButton(onClick = { deleteSubSourceConfirm = null }) { Text("Cancel") }
-            },
-            shape = RoundedCornerShape(20.dp)
+            title = "Delete Sub-Source?",
+            message = "Are you sure you want to delete '${deleteSubSourceConfirm!!.name}'?",
+            confirmText = "Delete",
+            cancelText = "Cancel",
+            isDestructive = true
         )
     }
 
@@ -318,7 +330,7 @@ fun ManageSourcesScreen(
                         text = "Main Sources",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TealPrimary
+                        color = EmeraldPalette.SoftEmerald
                     )
 
                     Button(
@@ -327,7 +339,7 @@ fun ManageSourcesScreen(
                             showAddMainDialog = true
                         },
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald)
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -338,32 +350,102 @@ fun ManageSourcesScreen(
 
             items(uiState.mainSources, key = { it.id }) { mainSource ->
                 val isSelected = uiState.selectedMainSource?.id == mainSource.id
+                val isDragging = draggingMainSourceId == mainSource.id
+                val density = LocalDensity.current
+                val thresholdPx = with(density) { 56.dp.toPx() }
+
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = if (isSelected) TealPrimary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
+                    color = when {
+                        isDragging -> EmeraldPalette.SoftEmerald.copy(alpha = 0.22f)
+                        isSelected -> EmeraldPalette.SoftEmerald.copy(alpha = 0.12f)
+                        else -> MaterialTheme.colorScheme.surface
+                    },
                     border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (isSelected) TealPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        if (isDragging) 1.5.dp else 1.dp,
+                        when {
+                            isDragging -> EmeraldPalette.EmeraldGlow
+                            isSelected -> EmeraldPalette.SoftEmerald
+                            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        }
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .animateItem()
+                        .zIndex(if (isDragging) 10f else 1f)
+                        .graphicsLayer {
+                            if (isDragging) {
+                                translationY = mainSourceDragOffset.coerceIn(-thresholdPx, thresholdPx)
+                                scaleX = 1.02f
+                                scaleY = 1.02f
+                            }
+                        }
                         .clip(RoundedCornerShape(14.dp))
                         .clickable { viewModel.selectMainSource(mainSource) }
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(horizontal = 10.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            // Draggable Handle
+                            Box(
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .pointerInput(mainSource.id) {
+                                        detectVerticalDragGestures(
+                                            onDragStart = {
+                                                draggingMainSourceId = mainSource.id
+                                                mainSourceDragOffset = 0f
+                                            },
+                                            onDragEnd = {
+                                                draggingMainSourceId = null
+                                                mainSourceDragOffset = 0f
+                                            },
+                                            onDragCancel = {
+                                                draggingMainSourceId = null
+                                                mainSourceDragOffset = 0f
+                                            },
+                                            onVerticalDrag = { change, dragAmount ->
+                                                change.consume()
+                                                mainSourceDragOffset += dragAmount
+                                                val idx = uiState.mainSources.indexOfFirst { it.id == mainSource.id }
+                                                if (idx != -1) {
+                                                    if (mainSourceDragOffset > thresholdPx && idx < uiState.mainSources.size - 1) {
+                                                        viewModel.moveMainSource(idx, idx + 1)
+                                                        mainSourceDragOffset -= thresholdPx
+                                                    } else if (mainSourceDragOffset < -thresholdPx && idx > 0) {
+                                                        viewModel.moveMainSource(idx, idx - 1)
+                                                        mainSourceDragOffset += thresholdPx
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DragHandle,
+                                    contentDescription = "Drag to reorder",
+                                    tint = if (isDragging) EmeraldPalette.EmeraldGlow else EmeraldTheme.extended.subText.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
                             Box(
                                 modifier = Modifier
                                     .size(10.dp)
-                                    .background(if (isSelected) TealPrimary else MaterialTheme.colorScheme.outline, CircleShape)
+                                    .background(if (isSelected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.outline, CircleShape)
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = mainSource.name,
                                 style = MaterialTheme.typography.bodyLarge,
@@ -417,7 +499,7 @@ fun ManageSourcesScreen(
                             text = "Sub-Sources",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TealPrimary
+                            color = EmeraldPalette.SoftEmerald
                         )
                         Text(
                             text = "Under: ${uiState.selectedMainSource?.name ?: "None"}",
@@ -468,28 +550,93 @@ fun ManageSourcesScreen(
                 }
             } else {
                 items(uiState.subSourcesForSelected, key = { it.id }) { subSource ->
+                    val isDragging = draggingSubSourceId == subSource.id
+                    val density = LocalDensity.current
+                    val thresholdPx = with(density) { 50.dp.toPx() }
+
                     Surface(
                         shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.surface,
+                        color = if (isDragging) EmeraldPalette.SoftEmerald.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surface,
                         border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            if (isDragging) 1.5.dp else 1.dp,
+                            if (isDragging) EmeraldPalette.EmeraldGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem()
+                            .zIndex(if (isDragging) 10f else 1f)
+                            .graphicsLayer {
+                                if (isDragging) {
+                                    translationY = subSourceDragOffset.coerceIn(-thresholdPx, thresholdPx)
+                                    scaleX = 1.02f
+                                    scaleY = 1.02f
+                                }
+                            }
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                                .padding(horizontal = 10.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = subSource.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                // Draggable Handle
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .pointerInput(subSource.id) {
+                                            detectVerticalDragGestures(
+                                                onDragStart = {
+                                                    draggingSubSourceId = subSource.id
+                                                    subSourceDragOffset = 0f
+                                                },
+                                                onDragEnd = {
+                                                    draggingSubSourceId = null
+                                                    subSourceDragOffset = 0f
+                                                },
+                                                onDragCancel = {
+                                                    draggingSubSourceId = null
+                                                    subSourceDragOffset = 0f
+                                                },
+                                                onVerticalDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    subSourceDragOffset += dragAmount
+                                                    val idx = uiState.subSourcesForSelected.indexOfFirst { it.id == subSource.id }
+                                                    if (idx != -1) {
+                                                        if (subSourceDragOffset > thresholdPx && idx < uiState.subSourcesForSelected.size - 1) {
+                                                            viewModel.moveSubSource(idx, idx + 1)
+                                                            subSourceDragOffset -= thresholdPx
+                                                        } else if (subSourceDragOffset < -thresholdPx && idx > 0) {
+                                                            viewModel.moveSubSource(idx, idx - 1)
+                                                            subSourceDragOffset += thresholdPx
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DragHandle,
+                                        contentDescription = "Drag to reorder",
+                                        tint = if (isDragging) EmeraldPalette.EmeraldGlow else EmeraldTheme.extended.subText.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                Text(
+                                    text = subSource.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(

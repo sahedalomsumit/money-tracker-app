@@ -14,15 +14,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,16 +51,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.ui.components.AllocationCategoryCard
+import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.theme.DonateColor
 import com.sahed.money_tracker.ui.theme.InvestColor
 import com.sahed.money_tracker.ui.theme.RestColor
 import com.sahed.money_tracker.ui.theme.SavingColor
-import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.util.CurrencyHelper
 import com.sahed.money_tracker.util.DateUtils
+import com.sahed.money_tracker.util.MathExpressionEvaluator
 import com.sahed.money_tracker.viewmodel.AddEntryViewModel
 
 @Composable
@@ -68,6 +77,7 @@ fun AddEntryScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val uiState by viewModel.uiState.collectAsState()
 
     var monthDropdownExpanded by remember { mutableStateOf(false) }
@@ -107,7 +117,7 @@ fun AddEntryScreen(
                     Text(
                         text = "Adding to: ${uiState.selectedMainSource?.name ?: "Main Source"}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = EmeraldTheme.extended.subText
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     OutlinedTextField(
@@ -130,6 +140,8 @@ fun AddEntryScreen(
                             showAddSubSourceDialog = false
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPalette.SoftEmerald),
+                    shape = RoundedCornerShape(12.dp),
                     enabled = newSubSourceName.isNotBlank()
                 ) {
                     Text("Add & Select")
@@ -137,26 +149,26 @@ fun AddEntryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showAddSubSourceDialog = false }) {
-                    Text("Cancel")
+                    Text("Cancel", color = EmeraldTheme.extended.subText)
                 }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = DialogShape,
+            containerColor = EmeraldTheme.extended.surfaceTier2
         )
     }
 
     Surface(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Header Row with Close Icon
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Pinned/Fixed Header Row with Close Icon - stays visible on scroll!
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -167,28 +179,37 @@ fun AddEntryScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                IconButton(
-                    onClick = onDismiss,
+                Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable(onClick = onDismiss),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Month and Year Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Scrollable form body below fixed header
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Month and Year Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 // Month selector
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -289,8 +310,7 @@ fun AddEntryScreen(
                         expanded = yearDropdownExpanded,
                         onDismissRequest = { yearDropdownExpanded = false }
                     ) {
-                        val currentY = DateUtils.getCurrentYear()
-                        (currentY - 5..currentY + 2).reversed().forEach { y ->
+                        DateUtils.getAvailableYears().forEach { y ->
                             DropdownMenuItem(
                                 text = { Text(y.toString()) },
                                 onClick = {
@@ -305,28 +325,84 @@ fun AddEntryScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Net Salary Input
-            Text(
-                text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Net Salary Input with Inline Math Expressions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
+                    Surface(
+                        onClick = { viewModel.evaluateAndApplySalary() },
+                        shape = RoundedCornerShape(6.dp),
+                        color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = "= ${CurrencyHelper.format(uiState.salaryAmount, uiState.userProfile.currencySymbol.ifBlank { "$" }, uiState.userProfile.currencyCode)} (Tap to apply)",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = EmeraldPalette.SoftEmerald
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = uiState.salaryInput,
-                onValueChange = { viewModel.setSalaryInput(it) },
-                placeholder = { Text("0.00") },
+                onValueChange = { input ->
+                    if (input.endsWith("=")) {
+                        // User typed '=' -> automatically calculate and apply
+                        viewModel.evaluateAndApplySalary()
+                    } else {
+                        viewModel.setSalaryInput(input)
+                    }
+                },
+                placeholder = { Text("905.95 or e.g. (33+17)-10") },
                 leadingIcon = {
                     Text(
                         text = uiState.userProfile.currencySymbol.ifBlank { "$" },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TealPrimary,
+                        color = EmeraldPalette.SoftEmerald,
                         modifier = Modifier.padding(start = 12.dp)
                     )
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                trailingIcon = {
+                    if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
+                        Surface(
+                            onClick = { viewModel.evaluateAndApplySalary() },
+                            shape = RoundedCornerShape(8.dp),
+                            color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f)),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = EmeraldPalette.SoftEmerald
+                            )
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        viewModel.evaluateAndApplySalary()
+                        focusManager.clearFocus()
+                    }
+                ),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
@@ -415,7 +491,7 @@ fun AddEntryScreen(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
-                            tint = TealPrimary,
+                            tint = EmeraldPalette.SoftEmerald,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -423,7 +499,7 @@ fun AddEntryScreen(
                             text = "Add new",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = TealPrimary
+                            color = EmeraldPalette.SoftEmerald
                         )
                     }
                 }
@@ -566,7 +642,7 @@ fun AddEntryScreen(
                 enabled = uiState.isValid && !uiState.isSaving,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary,
+                    containerColor = EmeraldPalette.SoftEmerald,
                     contentColor = Color.White
                 ),
                 modifier = Modifier
@@ -591,6 +667,7 @@ fun AddEntryScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
+}
 }
 
 @Composable
