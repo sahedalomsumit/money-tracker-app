@@ -1,5 +1,7 @@
 package com.sahed.money_tracker.ui.screens.dashboard
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.ui.components.AllocationBreakdownGrid
@@ -54,8 +57,14 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var yearDropdownExpanded by remember { mutableStateOf(false) }
+
+    // Intercept system back press on home Dashboard to exit the application cleanly
+    BackHandler(enabled = uiState.selectedEntryForEdit == null) {
+        (context as? Activity)?.finish()
+    }
 
     // Dialog for editing/deleting entry
     if (uiState.selectedEntryForEdit != null) {

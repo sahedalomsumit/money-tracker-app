@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sahed.money_tracker.ui.components.MoneyBottomBar
 import com.sahed.money_tracker.ui.designsystem.theme.BottomSheetShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.screens.auth.LoginScreen
 import com.sahed.money_tracker.ui.screens.dashboard.DashboardScreen
@@ -60,6 +63,19 @@ fun AppNavGraph(
 ) {
     val authState by authViewModel.uiState.collectAsState()
 
+    // Render smooth loading screen while checking initial session
+    if (authState is AuthUiState.Initial) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(EmeraldTheme.extended.surfaceTier1),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = EmeraldPalette.SoftEmerald)
+        }
+        return
+    }
+
     // Add Entry Sheet Visibility State (can be opened from anywhere via center "+")
     var showAddEntrySheet by remember { mutableStateOf(false) }
 
@@ -74,6 +90,7 @@ fun AppNavGraph(
             if (currentRoute != AppRoutes.LOGIN) {
                 navController.navigate(AppRoutes.LOGIN) {
                     popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
                 }
             }
         }
@@ -96,14 +113,19 @@ fun AppNavGraph(
                         showAddEntrySheet = false
                         if (currentRoute != AppRoutes.DASHBOARD) {
                             navController.navigate(AppRoutes.DASHBOARD) {
-                                popUpTo(AppRoutes.DASHBOARD) { inclusive = true }
+                                popUpTo(AppRoutes.DASHBOARD) { inclusive = false }
+                                launchSingleTop = true
                             }
                         }
                     },
                     onNavigateToSettings = {
                         showAddEntrySheet = false
                         if (currentRoute != AppRoutes.SETTINGS) {
-                            navController.navigate(AppRoutes.SETTINGS)
+                            navController.navigate(AppRoutes.SETTINGS) {
+                                popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     },
                     onOpenAddEntry = {
@@ -130,12 +152,14 @@ fun AppNavGraph(
                             viewModel = authViewModel,
                             onNavigateToDashboard = {
                                 navController.navigate(AppRoutes.DASHBOARD) {
-                                    popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             },
                             onNavigateToOnboarding = {
                                 navController.navigate(AppRoutes.ONBOARDING) {
-                                    popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         )
@@ -147,7 +171,8 @@ fun AppNavGraph(
                             viewModel = onboardingViewModel,
                             onOnboardingComplete = {
                                 navController.navigate(AppRoutes.DASHBOARD) {
-                                    popUpTo(AppRoutes.ONBOARDING) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         )
@@ -169,6 +194,7 @@ fun AppNavGraph(
                                 authViewModel.signOut()
                                 navController.navigate(AppRoutes.LOGIN) {
                                     popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         )

@@ -5,4 +5,7 @@
     <color name="icon_chart_cream">#FDFBF7</color>
     <color name="bg_dark">#0F1715</color>
     <color name="bg_light">#F8FAFC</color>
+    <color name="logo_gradient_start">#6AB9A4</color>
+    <color name="logo_gradient_center">#3C9C81</color>
+    <color name="logo_gradient_end">#086B57</color>
 </resources>

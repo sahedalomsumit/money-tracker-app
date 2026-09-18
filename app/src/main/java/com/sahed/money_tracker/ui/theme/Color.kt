@@ -39,3 +39,9 @@ val ChartBestMonth = Color(0xFF6EE7B7)   // Lighter mint emerald (peak)
 val ChartWorstMonth = Color(0xFF1B5E4B)  // Darker variant of primary SoftEmerald (low - not red)
 val ChartDefaultBar = EmeraldPalette.SoftEmerald  // Soft emerald (avg)
 val ChartMutedBar = EmeraldPalette.Surface3Dark   // Surface tier 3
+
+// Logo Gradient (Reference Matched)
+val LogoGradientTop = EmeraldPalette.LogoGradientTop
+val LogoGradientCenter = EmeraldPalette.LogoGradientCenter
+val LogoGradientBottom = EmeraldPalette.LogoGradientBottom
+val LogoGradient = EmeraldPalette.LogoGradient

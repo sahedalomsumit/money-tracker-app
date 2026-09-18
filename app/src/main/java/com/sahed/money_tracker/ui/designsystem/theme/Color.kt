@@ -11,6 +11,12 @@ object EmeraldPalette {
     val EmeraldGlow = Color(0xFF3DBFA0)
     val InvestBlue  = Color(0xFF3B82F6) // Accessible Vibrant Sapphire Blue for Investing
 
+    // Logo Gradient (Reference Matched)
+    val LogoGradientTop    = Color(0xFF6AB9A4) // Soft mint jade
+    val LogoGradientCenter = Color(0xFF3C9C81) // Balanced rich emerald
+    val LogoGradientBottom = Color(0xFF086B57) // Deep forest sea green
+    val LogoGradient       = listOf(LogoGradientTop, LogoGradientCenter, LogoGradientBottom)
+
     // Text (High-contrast WCAG AAA compliant)
     val DarkText    = Color(0xFF111816) // Rich very dark emerald-charcoal for light theme
     val LightText   = Color(0xFFFFFFFF) // Crisp pure white for dark theme

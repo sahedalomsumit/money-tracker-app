@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -133,12 +134,14 @@ fun LoginScreen(
                 // App Icon Presentation
                 Surface(
                     shape = RoundedCornerShape(28.dp),
-                    color = EmeraldPalette.DeepGreen,
+                    color = Color.Transparent,
                     modifier = Modifier.size(100.dp),
                     shadowElevation = 12.dp
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.verticalGradient(EmeraldPalette.LogoGradient)),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -188,12 +191,12 @@ fun LoginScreen(
                         onClick = { launchGoogleSignIn() },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = EmeraldTheme.extended.surfaceTier1,
-                            contentColor = MaterialTheme.colorScheme.onSurface
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.2.dp,
-                            EmeraldTheme.extended.glassBorder
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 2.dp,
+                            pressedElevation = 4.dp
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -203,29 +206,29 @@ fun LoginScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            // Flat G letter in circle
+                            // Official Google logo in clean white circle container
                             Surface(
                                 shape = CircleShape,
-                                color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f),
-                                modifier = Modifier.size(28.dp)
+                                color = Color.White,
+                                modifier = Modifier.size(32.dp)
                             ) {
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = "G",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = EmeraldPalette.SoftEmerald
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_google_logo),
+                                        contentDescription = "Google Logo",
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.width(14.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = "Continue with Google",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }
