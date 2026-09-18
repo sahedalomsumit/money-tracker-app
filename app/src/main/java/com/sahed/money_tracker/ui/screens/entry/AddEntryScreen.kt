@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -49,7 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -375,28 +381,75 @@ fun AddEntryScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = uiState.salaryInput,
-                    onValueChange = { input ->
-                        if (input.endsWith("=")) {
-                            viewModel.evaluateAndApplySalary()
-                            focusManager.clearFocus()
-                        } else {
-                            viewModel.setSalaryInput(input)
+                var isSalaryFocused by remember { mutableStateOf(false) }
+                val salaryFocusRequester = remember { FocusRequester() }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (isSalaryFocused) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                salaryFocusRequester.requestFocus()
+                            }
+                            .padding(horizontal = 14.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (uiState.salaryInput.isEmpty()) {
+                                Text(
+                                    text = "905.95 or e.g. (33+17)-10",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            BasicTextField(
+                                value = uiState.salaryInput,
+                                onValueChange = { input ->
+                                    if (input.endsWith("=")) {
+                                        viewModel.evaluateAndApplySalary()
+                                        focusManager.clearFocus()
+                                    } else {
+                                        viewModel.setSalaryInput(input)
+                                    }
+                                },
+                                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                    color = MaterialTheme.colorScheme.onSurface
+                                ),
+                                cursorBrush = SolidColor(EmeraldPalette.SoftEmerald),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        viewModel.evaluateAndApplySalary()
+                                        focusManager.clearFocus()
+                                    }
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(salaryFocusRequester)
+                                    .onFocusChanged { isSalaryFocused = it.isFocused }
+                            )
                         }
-                    },
-                    placeholder = { Text("905.95 or e.g. (33+17)-10") },
-                    leadingIcon = {
-                        Text(
-                            text = uiState.userProfile.currencySymbol.ifBlank { "$" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = EmeraldPalette.SoftEmerald,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                    },
-                    trailingIcon = {
+
                         if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
+                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 onClick = {
                                     focusManager.clearFocus()
@@ -404,33 +457,19 @@ fun AddEntryScreen(
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f)),
-                                modifier = Modifier.padding(end = 8.dp)
+                                border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f))
                             ) {
                                 Text(
                                     text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = EmeraldPalette.SoftEmerald
                                 )
                             }
                         }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            viewModel.evaluateAndApplySalary()
-                            focusManager.clearFocus()
-                        }
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(18.dp))
 

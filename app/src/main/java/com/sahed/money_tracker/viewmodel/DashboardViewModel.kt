@@ -1,12 +1,14 @@
 package com.sahed.money_tracker.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sahed.money_tracker.data.model.AllocationSettings
 import com.sahed.money_tracker.data.model.IncomeEntry
 import com.sahed.money_tracker.data.model.MainSource
 import com.sahed.money_tracker.data.model.SubSource
 import com.sahed.money_tracker.data.model.UserProfile
+import com.sahed.money_tracker.data.preferences.AppPreferences
 import com.sahed.money_tracker.data.repository.AllocationRepository
 import com.sahed.money_tracker.data.repository.AuthRepository
 import com.sahed.money_tracker.data.repository.EntryRepository
@@ -32,16 +34,20 @@ data class DashboardUiState(
     val mainSources: List<MainSource> = emptyList(),
     val subSources: List<SubSource> = emptyList(),
     val isLoading: Boolean = false,
-    val selectedEntryForEdit: IncomeEntry? = null
+    val selectedEntryForEdit: IncomeEntry? = null,
+    val isIncomeSourcesExpanded: Boolean = false,
+    val visibleEntriesCount: Int = 5
 )
 
 class DashboardViewModel @JvmOverloads constructor(
+    application: Application,
     private val authRepository: AuthRepository = AuthRepository(),
     private val entryRepository: EntryRepository = EntryRepository(),
     private val profileRepository: ProfileRepository = ProfileRepository(),
     private val allocationRepository: AllocationRepository = AllocationRepository(),
-    private val sourceRepository: SourceRepository = SourceRepository()
-) : ViewModel() {
+    private val sourceRepository: SourceRepository = SourceRepository(),
+    private val preferences: AppPreferences = AppPreferences(application.applicationContext)
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
@@ -104,14 +110,44 @@ class DashboardViewModel @JvmOverloads constructor(
             }
         }
 
+        // Listen to income sources expanded preference
+        viewModelScope.launch {
+            try {
+                preferences.incomeSourcesExpanded.collectLatest { expanded ->
+                    _uiState.update { it.copy(isIncomeSourcesExpanded = expanded) }
+                }
+            } catch (e: Exception) {
+                // Safe catch
+            }
+        }
+
         // Load entries for current selected year
         observeEntriesForYear(_uiState.value.selectedYear)
     }
 
     fun setSelectedYear(year: Int) {
         if (_uiState.value.selectedYear == year) return
-        _uiState.update { it.copy(selectedYear = year) }
+        _uiState.update { it.copy(selectedYear = year, visibleEntriesCount = 5) }
         observeEntriesForYear(year)
+    }
+
+    fun toggleIncomeSourcesExpanded() {
+        val next = !_uiState.value.isIncomeSourcesExpanded
+        viewModelScope.launch {
+            try {
+                preferences.setIncomeSourcesExpanded(next)
+            } catch (e: Exception) {
+                // Safe catch
+            }
+        }
+    }
+
+    fun loadMoreEntries() {
+        _uiState.update { it.copy(visibleEntriesCount = it.entries.size) }
+    }
+
+    fun collapseEntries() {
+        _uiState.update { it.copy(visibleEntriesCount = 5) }
     }
 
     private fun observeEntriesForYear(year: Int) {

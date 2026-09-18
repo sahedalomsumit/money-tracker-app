@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +39,7 @@ fun EmeraldHeroBanner(
     unit: String = "",
     subtitle: String = "",
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     icon: @Composable () -> Unit = {
         Icon(
             imageVector = Icons.Rounded.LocalFireDepartment,
@@ -49,8 +53,21 @@ fun EmeraldHeroBanner(
         colors = listOf(EmeraldPalette.DeepGreen, EmeraldPalette.SoftEmerald)
     )
 
-    Box(
-        modifier = modifier
+    val baseModifier = if (onClick != null) {
+        modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(20.dp),
+                ambientColor = EmeraldPalette.SoftEmerald.copy(alpha = 0.3f),
+                spotColor = EmeraldPalette.SoftEmerald.copy(alpha = 0.4f)
+            )
+            .clip(RoundedCornerShape(20.dp))
+            .background(brush = gradient)
+            .clickable(onClick = onClick)
+            .padding(24.dp)
+    } else {
+        modifier
             .fillMaxWidth()
             .shadow(
                 elevation = 12.dp,
@@ -61,6 +78,10 @@ fun EmeraldHeroBanner(
             .clip(RoundedCornerShape(20.dp))
             .background(brush = gradient)
             .padding(24.dp)
+    }
+
+    Box(
+        modifier = baseModifier
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -101,6 +122,27 @@ fun EmeraldHeroBanner(
                         style = MaterialTheme.typography.bodySmall,
                         color = EmeraldPalette.LightText.copy(alpha = 0.88f)
                     )
+                }
+
+                if (onClick != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "View breakdown",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                            color = EmeraldPalette.LightText.copy(alpha = 0.95f),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = EmeraldPalette.LightText.copy(alpha = 0.95f),
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
                 }
             }
 

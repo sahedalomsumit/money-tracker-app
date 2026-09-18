@@ -20,10 +20,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +49,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
@@ -54,6 +59,8 @@ import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 fun MoneyBottomBar(
     currentRoute: String,
     onNavigateToDashboard: () -> Unit,
+    onNavigateToEntries: () -> Unit,
+    onNavigateToStatistics: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onOpenAddEntry: () -> Unit,
     modifier: Modifier = Modifier
@@ -107,24 +114,44 @@ fun MoneyBottomBar(
                     .fillMaxWidth()
                     .padding(top = topProtrusion)
                     .height(navBarHeight)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1. Dashboard Tab
+                // 1. Home Tab
                 NavPillItem(
-                    label = "Dashboard",
+                    label = "Home",
                     selected = currentRoute == "dashboard",
-                    activeIcon = Icons.Filled.Dashboard,
-                    inactiveIcon = Icons.Outlined.Dashboard,
+                    activeIcon = Icons.Filled.Home,
+                    inactiveIcon = Icons.Outlined.Home,
                     onClick = onNavigateToDashboard,
                     modifier = Modifier.weight(1f)
                 )
 
-                // 2. Empty space in center for FAB and cradle
-                Spacer(modifier = Modifier.width(cutoutRadius * 2 + 16.dp))
+                // 2. Entries Tab
+                NavPillItem(
+                    label = "Entries",
+                    selected = currentRoute == "entries",
+                    activeIcon = Icons.AutoMirrored.Filled.ReceiptLong,
+                    inactiveIcon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                    onClick = onNavigateToEntries,
+                    modifier = Modifier.weight(1f)
+                )
 
-                // 3. Settings Tab
+                // Center cradle gap for floating Add (+) button
+                Spacer(modifier = Modifier.width(cutoutRadius * 2 + 10.dp))
+
+                // 3. All Time Statistics Tab
+                NavPillItem(
+                    label = "Stats",
+                    selected = currentRoute == "statistics",
+                    activeIcon = Icons.Filled.BarChart,
+                    inactiveIcon = Icons.Outlined.BarChart,
+                    onClick = onNavigateToStatistics,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // 4. Settings Tab
                 NavPillItem(
                     label = "Settings",
                     selected = currentRoute == "settings",
@@ -268,11 +295,11 @@ private fun NavPillItem(
         // Pill Indicator behind icon (stadium shape)
         Box(
             modifier = Modifier
-                .width(64.dp)
-                .height(32.dp)
+                .width(48.dp)
+                .height(28.dp)
                 .background(
                     color = indicatorColor,
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(14.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -280,18 +307,20 @@ private fun NavPillItem(
                 imageVector = if (selected) activeIcon else inactiveIcon,
                 contentDescription = label,
                 tint = contentColor,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(3.dp))
 
         // Label below pill
         Text(
             text = label,
             color = contentColor,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

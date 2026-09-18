@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,12 +41,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.ui.components.AllocationBreakdownGrid
-import com.sahed.money_tracker.ui.components.EditEntryDialog
-import com.sahed.money_tracker.ui.components.EntryItemCard
 import com.sahed.money_tracker.ui.components.MonthlyBarChart
 import com.sahed.money_tracker.ui.components.SourceBreakdownCard
 import com.sahed.money_tracker.ui.components.TotalIncomeCard
-import com.sahed.money_tracker.ui.designsystem.components.EmeraldGlassCard
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.viewmodel.DashboardViewModel
@@ -62,30 +59,8 @@ fun DashboardScreen(
     var yearDropdownExpanded by remember { mutableStateOf(false) }
 
     // Intercept system back press on home Dashboard to exit the application cleanly
-    BackHandler(enabled = uiState.selectedEntryForEdit == null) {
+    BackHandler {
         (context as? Activity)?.finish()
-    }
-
-    // Dialog for editing/deleting entry
-    if (uiState.selectedEntryForEdit != null) {
-        EditEntryDialog(
-            entry = uiState.selectedEntryForEdit!!,
-            mainSources = uiState.mainSources,
-            subSources = uiState.subSources,
-            currencySymbol = uiState.userProfile.currencySymbol,
-            onFetchSubSources = { mainId ->
-                viewModel.fetchSubSourcesForMainSource(mainId)
-            },
-            onSave = { updated ->
-                viewModel.updateEntry(updated)
-            },
-            onDelete = { id ->
-                viewModel.deleteEntry(id)
-            },
-            onDismissRequest = {
-                viewModel.dismissEditEntryDialog()
-            }
-        )
     }
 
     Scaffold(
@@ -103,7 +78,7 @@ fun DashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Dashboard",
+                            text = "Home",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -212,7 +187,7 @@ fun DashboardScreen(
                 )
             }
 
-            // 4. Source Breakdown Card with Drilldown (Collapsible & Expandable)
+            // 4. Source Breakdown Card
             item(key = "source_breakdown_card") {
                 SourceBreakdownCard(
                     entries = uiState.entries,
@@ -220,73 +195,6 @@ fun DashboardScreen(
                     currencySymbol = uiState.userProfile.currencySymbol,
                     currencyCode = uiState.userProfile.currencyCode
                 )
-            }
-
-            // 5. Entries List Header
-            item(key = "entries_header") {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Entries (${uiState.entries.size})",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
-
-            // 6. Entries List items
-            if (uiState.entries.isEmpty()) {
-                item(key = "empty_entries") {
-                    EmeraldGlassCard(
-                        cornerRadius = 18.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
-                                contentDescription = null,
-                                tint = EmeraldTheme.extended.subText.copy(alpha = 0.5f),
-                                modifier = Modifier.height(44.dp)
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = "No income logged for ${uiState.selectedYear}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = EmeraldTheme.extended.subText
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Tap the + button below to add an entry",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = EmeraldPalette.SoftEmerald
-                            )
-                        }
-                    }
-                }
-            } else {
-                items(uiState.entries, key = { it.id }) { entry ->
-                    EntryItemCard(
-                        entry = entry,
-                        currencySymbol = uiState.userProfile.currencySymbol,
-                        currencyCode = uiState.userProfile.currencyCode,
-                        onClick = {
-                            viewModel.openEditEntryDialog(entry)
-                        }
-                    )
-                }
             }
         }
     }

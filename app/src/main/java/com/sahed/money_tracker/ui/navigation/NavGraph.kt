@@ -35,13 +35,17 @@ import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.screens.auth.LoginScreen
 import com.sahed.money_tracker.ui.screens.dashboard.DashboardScreen
 import com.sahed.money_tracker.ui.screens.entry.AddEntryScreen
+import com.sahed.money_tracker.ui.screens.entry.EntriesScreen
 import com.sahed.money_tracker.ui.screens.onboarding.OnboardingScreen
 import com.sahed.money_tracker.ui.screens.settings.ManageSourcesScreen
 import com.sahed.money_tracker.ui.screens.settings.SettingsScreen
+import com.sahed.money_tracker.ui.screens.statistics.AllTimeStatisticsScreen
 import com.sahed.money_tracker.viewmodel.AddEntryViewModel
+import com.sahed.money_tracker.viewmodel.AllTimeStatisticsViewModel
 import com.sahed.money_tracker.viewmodel.AuthUiState
 import com.sahed.money_tracker.viewmodel.AuthViewModel
 import com.sahed.money_tracker.viewmodel.DashboardViewModel
+import com.sahed.money_tracker.viewmodel.EntriesViewModel
 import com.sahed.money_tracker.viewmodel.ManageSourcesViewModel
 import com.sahed.money_tracker.viewmodel.OnboardingViewModel
 import com.sahed.money_tracker.viewmodel.SettingsViewModel
@@ -50,6 +54,8 @@ object AppRoutes {
     const val LOGIN = "login"
     const val ONBOARDING = "onboarding"
     const val DASHBOARD = "dashboard"
+    const val ENTRIES = "entries"
+    const val STATISTICS = "statistics"
     const val SETTINGS = "settings"
     const val MANAGE_SOURCES = "manage_sources"
 }
@@ -82,7 +88,12 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: AppRoutes.LOGIN
 
-    val showBottomBar = currentRoute == AppRoutes.DASHBOARD || currentRoute == AppRoutes.SETTINGS
+    val showBottomBar = currentRoute in setOf(
+        AppRoutes.DASHBOARD,
+        AppRoutes.ENTRIES,
+        AppRoutes.STATISTICS,
+        AppRoutes.SETTINGS
+    )
 
     // Enforce mandatory login: if unauthenticated at any point, navigate to welcome/login screen
     androidx.compose.runtime.LaunchedEffect(authState) {
@@ -113,8 +124,29 @@ fun AppNavGraph(
                         showAddEntrySheet = false
                         if (currentRoute != AppRoutes.DASHBOARD) {
                             navController.navigate(AppRoutes.DASHBOARD) {
-                                popUpTo(AppRoutes.DASHBOARD) { inclusive = false }
+                                popUpTo(AppRoutes.DASHBOARD) { saveState = true }
                                 launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    onNavigateToEntries = {
+                        showAddEntrySheet = false
+                        if (currentRoute != AppRoutes.ENTRIES) {
+                            navController.navigate(AppRoutes.ENTRIES) {
+                                popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    onNavigateToStatistics = {
+                        showAddEntrySheet = false
+                        if (currentRoute != AppRoutes.STATISTICS) {
+                            navController.navigate(AppRoutes.STATISTICS) {
+                                popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     },
@@ -181,6 +213,16 @@ fun AppNavGraph(
                     composable(AppRoutes.DASHBOARD) {
                         val dashboardViewModel: DashboardViewModel = viewModel()
                         DashboardScreen(viewModel = dashboardViewModel)
+                    }
+
+                    composable(AppRoutes.ENTRIES) {
+                        val entriesViewModel: EntriesViewModel = viewModel()
+                        EntriesScreen(viewModel = entriesViewModel)
+                    }
+
+                    composable(AppRoutes.STATISTICS) {
+                        val statisticsViewModel: AllTimeStatisticsViewModel = viewModel()
+                        AllTimeStatisticsScreen(viewModel = statisticsViewModel)
                     }
 
                     composable(AppRoutes.SETTINGS) {

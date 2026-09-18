@@ -23,6 +23,7 @@ class AppPreferences(private val context: Context) {
     companion object {
         private val THEME_KEY = stringPreferencesKey("theme_mode")
         private val NOTIFICATIONS_KEY = booleanPreferencesKey("notifications_enabled")
+        private val INCOME_SOURCES_EXPANDED_KEY = booleanPreferencesKey("income_sources_expanded")
     }
 
     val themeMode: Flow<ThemeMode> = context.dataStore.data.map { preferences ->
@@ -38,6 +39,10 @@ class AppPreferences(private val context: Context) {
         preferences[NOTIFICATIONS_KEY] ?: true
     }
 
+    val incomeSourcesExpanded: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[INCOME_SOURCES_EXPANDED_KEY] ?: false
+    }
+
     fun getTimeZoneId(): String {
         return TimeZone.getDefault().id
     }
@@ -51,6 +56,12 @@ class AppPreferences(private val context: Context) {
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[NOTIFICATIONS_KEY] = enabled
+        }
+    }
+
+    suspend fun setIncomeSourcesExpanded(expanded: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[INCOME_SOURCES_EXPANDED_KEY] = expanded
         }
     }
 }
