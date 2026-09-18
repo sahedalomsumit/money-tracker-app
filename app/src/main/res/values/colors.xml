@@ -1,0 +1,8 @@
+<resources>
+    <color name="teal_primary">#0D9488</color>
+    <color name="teal_dark">#0F766E</color>
+    <color name="teal_light">#14B8A6</color>
+    <color name="icon_chart_cream">#FDFBF7</color>
+    <color name="bg_dark">#0F1715</color>
+    <color name="bg_light">#F8FAFC</color>
+</resources>

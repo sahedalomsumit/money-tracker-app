@@ -1,0 +1,77 @@
+package com.sahed.money_tracker.util
+
+import com.sahed.money_tracker.data.model.CountryCurrency
+import com.sahed.money_tracker.data.model.CurrencyOption
+
+object CountriesData {
+    val countries: List<CountryCurrency> = listOf(
+        CountryCurrency("BD", "Bangladesh", "🇧🇩", "BDT", "৳"),
+        CountryCurrency("US", "United States", "🇺🇸", "USD", "$"),
+        CountryCurrency("GB", "United Kingdom", "🇬🇧", "GBP", "£"),
+        CountryCurrency("EU", "Eurozone", "🇪🇺", "EUR", "€"),
+        CountryCurrency("CA", "Canada", "🇨🇦", "CAD", "CA$"),
+        CountryCurrency("AU", "Australia", "🇦🇺", "AUD", "A$"),
+        CountryCurrency("AE", "United Arab Emirates", "🇦🇪", "AED", "د.إ"),
+        CountryCurrency("SA", "Saudi Arabia", "🇸🇦", "SAR", "﷼"),
+        CountryCurrency("IN", "India", "🇮🇳", "INR", "₹"),
+        CountryCurrency("PK", "Pakistan", "🇵🇰", "PKR", "₨"),
+        CountryCurrency("SG", "Singapore", "🇸🇬", "SGD", "S$"),
+        CountryCurrency("MY", "Malaysia", "🇲🇾", "MYR", "RM"),
+        CountryCurrency("JP", "Japan", "🇯🇵", "JPY", "¥"),
+        CountryCurrency("KR", "South Korea", "🇰🇷", "KRW", "₩"),
+        CountryCurrency("CN", "China", "🇨🇳", "CNY", "¥"),
+        CountryCurrency("ID", "Indonesia", "🇮🇩", "IDR", "Rp"),
+        CountryCurrency("TR", "Turkey", "🇹🇷", "TRY", "₺"),
+        CountryCurrency("QA", "Qatar", "🇶🇦", "QAR", "ر.ق"),
+        CountryCurrency("KW", "Kuwait", "🇰🇼", "KWD", "د.ك"),
+        CountryCurrency("OM", "Oman", "🇴🇲", "OMR", "ر.ع."),
+        CountryCurrency("BH", "Bahrain", "🇧🇭", "BHD", "BD"),
+        CountryCurrency("CH", "Switzerland", "🇨🇭", "CHF", "CHF"),
+        CountryCurrency("SE", "Sweden", "🇸🇪", "SEK", "kr"),
+        CountryCurrency("NO", "Norway", "🇳🇴", "NOK", "kr"),
+        CountryCurrency("DK", "Denmark", "🇩🇰", "DKK", "kr"),
+        CountryCurrency("NZ", "New Zealand", "🇳🇿", "NZD", "NZ$"),
+        CountryCurrency("BR", "Brazil", "🇧🇷", "BRL", "R$"),
+        CountryCurrency("ZA", "South Africa", "🇿🇦", "ZAR", "R"),
+        CountryCurrency("NG", "Nigeria", "🇳🇬", "NGN", "₦"),
+        CountryCurrency("EG", "Egypt", "🇪🇬", "EGP", "E£"),
+        CountryCurrency("PH", "Philippines", "🇵🇭", "PHP", "₱"),
+        CountryCurrency("VN", "Vietnam", "🇻🇳", "VND", "₫"),
+        CountryCurrency("TH", "Thailand", "🇹🇭", "THB", "฿"),
+        CountryCurrency("MX", "Mexico", "🇲🇽", "MXN", "MX$"),
+        CountryCurrency("DE", "Germany", "🇩🇪", "EUR", "€"),
+        CountryCurrency("FR", "France", "🇫🇷", "EUR", "€"),
+        CountryCurrency("IT", "Italy", "🇮🇹", "EUR", "€"),
+        CountryCurrency("ES", "Spain", "🇪🇸", "EUR", "€"),
+        CountryCurrency("NL", "Netherlands", "🇳🇱", "EUR", "€"),
+        CountryCurrency("IE", "Ireland", "🇮🇪", "EUR", "€"),
+        CountryCurrency("PL", "Poland", "🇵🇱", "PLN", "zł")
+    ).sortedBy { it.countryName }
+
+    val popularCurrencies: List<CurrencyOption> = listOf(
+        CurrencyOption("USD", "$", "US Dollar"),
+        CurrencyOption("BDT", "৳", "Bangladeshi Taka"),
+        CurrencyOption("EUR", "€", "Euro"),
+        CurrencyOption("GBP", "£", "British Pound"),
+        CurrencyOption("CAD", "CA$", "Canadian Dollar"),
+        CurrencyOption("AUD", "A$", "Australian Dollar"),
+        CurrencyOption("AED", "د.إ", "UAE Dirham"),
+        CurrencyOption("SAR", "﷼", "Saudi Riyal"),
+        CurrencyOption("INR", "₹", "Indian Rupee"),
+        CurrencyOption("SGD", "S$", "Singapore Dollar"),
+        CurrencyOption("MYR", "RM", "Malaysian Ringgit"),
+        CurrencyOption("JPY", "¥", "Japanese Yen"),
+        CurrencyOption("CHF", "CHF", "Swiss Franc"),
+        CurrencyOption("CNY", "¥", "Chinese Yuan"),
+        CurrencyOption("QAR", "ر.ق", "Qatari Riyal"),
+        CurrencyOption("KWD", "د.ك", "Kuwaiti Dinar"),
+        CurrencyOption("TRY", "₺", "Turkish Lira"),
+        CurrencyOption("PKR", "₨", "Pakistani Rupee"),
+        CurrencyOption("NGN", "₦", "Nigerian Naira"),
+        CurrencyOption("ZAR", "R", "South African Rand"),
+        CurrencyOption("BRL", "R$", "Brazilian Real"),
+        CurrencyOption("THB", "฿", "Thai Baht"),
+        CurrencyOption("IDR", "Rp", "Indonesian Rupiah"),
+        CurrencyOption("PHP", "₱", "Philippine Peso")
+    )
+}

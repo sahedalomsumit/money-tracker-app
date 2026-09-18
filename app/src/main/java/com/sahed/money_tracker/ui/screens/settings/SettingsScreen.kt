@@ -1,0 +1,885 @@
+package com.sahed.money_tracker.ui.screens.settings
+
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.filled.VolunteerActivism
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.sahed.money_tracker.data.preferences.ThemeMode
+import com.sahed.money_tracker.ui.components.CountryPickerDialog
+import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
+import com.sahed.money_tracker.ui.theme.ChartWorstMonth
+import com.sahed.money_tracker.ui.theme.TealPrimary
+import com.sahed.money_tracker.util.DateUtils
+import com.sahed.money_tracker.viewmodel.SettingsUiState
+import com.sahed.money_tracker.viewmodel.SettingsViewModel
+
+@Composable
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onNavigateToManageSources: () -> Unit,
+    onSignOut: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+
+    var showCountryPicker by remember { mutableStateOf(false) }
+    var showCurrencyPicker by remember { mutableStateOf(false) }
+    var showSexPicker by remember { mutableStateOf(false) }
+    var showSignOutConfirm by remember { mutableStateOf(false) }
+
+    // Allocation Edit Dialog
+    var showAllocationDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.allocationSuccess) {
+        if (uiState.allocationSuccess) {
+            Toast.makeText(context, "Allocation settings updated!", Toast.LENGTH_SHORT).show()
+            showAllocationDialog = false
+            viewModel.clearAllocationStatus()
+        }
+    }
+
+    if (showCountryPicker) {
+        CountryPickerDialog(
+            onDismissRequest = { showCountryPicker = false },
+            onCountrySelected = { country ->
+                viewModel.updateCountryAndCurrency(
+                    countryName = country.countryName,
+                    currencyCode = country.defaultCurrencyCode,
+                    currencySymbol = country.defaultCurrencySymbol
+                )
+                showCountryPicker = false
+            }
+        )
+    }
+
+    if (showCurrencyPicker) {
+        CurrencyPickerDialog(
+            onDismissRequest = { showCurrencyPicker = false },
+            onCurrencySelected = { currency ->
+                viewModel.updateCurrencyOnly(currency.code, currency.symbol)
+                showCurrencyPicker = false
+            }
+        )
+    }
+
+    if (showSexPicker) {
+        AlertDialog(
+            onDismissRequest = { showSexPicker = false },
+            title = { Text("Select Sex") },
+            text = {
+                Column {
+                    listOf("Male", "Female", "Others").forEach { sex ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    viewModel.updateSex(sex)
+                                    showSexPicker = false
+                                }
+                                .padding(vertical = 12.dp, horizontal = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = sex, style = MaterialTheme.typography.bodyLarge)
+                            if (uiState.userProfile.sex == sex) {
+                                Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = TealPrimary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showSexPicker = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showSignOutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showSignOutConfirm = false },
+            title = { Text("Sign Out") },
+            text = { Text("Are you sure you want to sign out from Money Tracker?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSignOutConfirm = false
+                        viewModel.signOut()
+                        onSignOut()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ChartWorstMonth)
+                ) {
+                    Text("Sign Out")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutConfirm = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showAllocationDialog) {
+        AllocationEditDialog(
+            currentSettings = uiState.allocationSettings,
+            errorMessage = uiState.allocationErrorMessage,
+            isSaving = uiState.isSavingAllocation,
+            onSave = { saving, sLabel, invest, iLabel, donate, dLabel, rLabel ->
+                viewModel.updateAllocation(saving, sLabel, invest, iLabel, donate, dLabel, rLabel)
+            },
+            onDismissRequest = {
+                viewModel.clearAllocationStatus()
+                showAllocationDialog = false
+            }
+        )
+    }
+
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 1. Google Profile Card (Read-Only)
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (uiState.userProfile.photoUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = uiState.userProfile.photoUrl,
+                            contentDescription = "Profile Photo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(TealPrimary.copy(alpha = 0.15f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = TealPrimary,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = uiState.userProfile.name.ifBlank { "Google User" },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Synced from Google (Read-only)",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = uiState.userProfile.email,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 2. App Settings Section
+            SectionHeader(title = "App Settings")
+
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    // Country & Currency row
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = "Country & Currency",
+                        subtitle = "${uiState.userProfile.country} (${uiState.userProfile.currencySymbol} ${uiState.userProfile.currencyCode})",
+                        onClick = { showCountryPicker = true }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Currency override row
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = "Change Currency Only",
+                        subtitle = "Current: ${uiState.userProfile.currencySymbol} ${uiState.userProfile.currencyCode}",
+                        onClick = { showCurrencyPicker = true }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Sex row
+                    SettingsItem(
+                        icon = Icons.Default.Person,
+                        title = "Sex",
+                        subtitle = uiState.userProfile.sex.ifBlank { "Not specified" },
+                        onClick = { showSexPicker = true }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Theme row
+                    ThemeSelectionRow(
+                        currentTheme = uiState.themeMode,
+                        onThemeSelect = { viewModel.setThemeMode(it) }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Notifications row with Timezone
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                tint = TealPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Notifications",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Timezone: ${uiState.timeZone}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = uiState.notificationsEnabled,
+                            onCheckedChange = { viewModel.setNotificationsEnabled(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = TealPrimary
+                            )
+                        )
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Allocation Settings row
+                    SettingsItem(
+                        icon = Icons.Default.PieChart,
+                        title = "Allocation Settings",
+                        subtitle = "${uiState.allocationSettings.savingLabel} ${uiState.allocationSettings.savingPercent.toInt()}%, ${uiState.allocationSettings.investLabel} ${uiState.allocationSettings.investPercent.toInt()}%, ${uiState.allocationSettings.donateLabel} ${uiState.allocationSettings.donatePercent.toInt()}%",
+                        onClick = { showAllocationDialog = true }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+                    // Manage Sources row
+                    SettingsItem(
+                        icon = Icons.Default.Category,
+                        title = "Manage Sources",
+                        subtitle = "Main sources & sub-sources",
+                        onClick = onNavigateToManageSources
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 3. Account Section
+            SectionHeader(title = "Account")
+
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    title = "Sign Out",
+                    subtitle = "Signed in as ${uiState.userProfile.email}",
+                    onClick = { showSignOutConfirm = true },
+                    titleColor = ChartWorstMonth
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 4. Support Section (Optional App-support Donation)
+            SectionHeader(title = "Support Money Tracker")
+
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        text = "If you benefit from this ad-free app, you may support it for maintenance.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 22.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buy.stripe.com"))
+                                context.startActivity(intent)
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF635BFF)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                        ) {
+                            Text("Stripe", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bkash.com"))
+                                context.startActivity(intent)
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2136E)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                        ) {
+                            Text("bKash", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // 5. Footer
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Money Tracker App v1.0.0",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "© ${DateUtils.getCurrentYear()} Sahed Alom Sumit",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sahedalomsumit.com"))
+                            context.startActivity(intent)
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Built with ❤️ by Sahed",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TealPrimary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        tint = TealPrimary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+        color = TealPrimary,
+        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+private fun SettingsItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TealPrimary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = titleColor
+                )
+                if (subtitle.isNotBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun ThemeSelectionRow(
+    currentTheme: ThemeMode,
+    onThemeSelect: (ThemeMode) -> Unit
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.SettingsBrightness,
+                contentDescription = null,
+                tint = TealPrimary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = "Theme",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ThemeOptionChip(
+                label = "Dark",
+                icon = Icons.Default.DarkMode,
+                selected = currentTheme == ThemeMode.DARK,
+                onClick = { onThemeSelect(ThemeMode.DARK) },
+                modifier = Modifier.weight(1f)
+            )
+            ThemeOptionChip(
+                label = "Light",
+                icon = Icons.Default.LightMode,
+                selected = currentTheme == ThemeMode.LIGHT,
+                onClick = { onThemeSelect(ThemeMode.LIGHT) },
+                modifier = Modifier.weight(1f)
+            )
+            ThemeOptionChip(
+                label = "System",
+                icon = Icons.Default.SettingsBrightness,
+                selected = currentTheme == ThemeMode.SYSTEM,
+                onClick = { onThemeSelect(ThemeMode.SYSTEM) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeOptionChip(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) TealPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) TealPrimary else Color.Transparent
+        ),
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (selected) TealPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) TealPrimary else MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun AllocationEditDialog(
+    currentSettings: com.sahed.money_tracker.data.model.AllocationSettings,
+    errorMessage: String?,
+    isSaving: Boolean,
+    onSave: (Double, String, Double, String, Double, String, String) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    var savingText by remember { mutableStateOf(currentSettings.savingPercent.toInt().toString()) }
+    var savingLabel by remember { mutableStateOf(currentSettings.savingLabel) }
+
+    var investText by remember { mutableStateOf(currentSettings.investPercent.toInt().toString()) }
+    var investLabel by remember { mutableStateOf(currentSettings.investLabel) }
+
+    var donateText by remember { mutableStateOf(currentSettings.donatePercent.toInt().toString()) }
+    var donateLabel by remember { mutableStateOf(currentSettings.donateLabel) }
+
+    var restLabel by remember { mutableStateOf(currentSettings.restLabel) }
+
+    val saving = savingText.toDoubleOrNull() ?: 0.0
+    val invest = investText.toDoubleOrNull() ?: 0.0
+    val donate = donateText.toDoubleOrNull() ?: 0.0
+    val sum = saving + invest + donate
+    val restPercent = (100.0 - sum).coerceAtLeast(0.0)
+    val isOver100 = sum > 100.0
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(
+                text = "Edit Allocation Settings",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = "Configure your global percentage allocations and category labels.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Inline Error Warning if > 100%
+                if (isOver100 || errorMessage != null) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = ChartWorstMonth.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ChartWorstMonth),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ErrorOutline,
+                                contentDescription = null,
+                                tint = ChartWorstMonth,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = errorMessage ?: "Total percentages sum to ${String.format(java.util.Locale.US, "%.1f", sum)}% (cannot exceed 100%).",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ChartWorstMonth,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Saving Category
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = savingLabel,
+                        onValueChange = { savingLabel = it },
+                        label = { Text("Label") },
+                        modifier = Modifier.weight(1.5f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    OutlinedTextField(
+                        value = savingText,
+                        onValueChange = { savingText = it },
+                        label = { Text("%") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Investing Category
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = investLabel,
+                        onValueChange = { investLabel = it },
+                        label = { Text("Label") },
+                        modifier = Modifier.weight(1.5f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    OutlinedTextField(
+                        value = investText,
+                        onValueChange = { investText = it },
+                        label = { Text("%") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Donate Category
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = donateLabel,
+                        onValueChange = { donateLabel = it },
+                        label = { Text("Label") },
+                        modifier = Modifier.weight(1.5f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    OutlinedTextField(
+                        value = donateText,
+                        onValueChange = { donateText = it },
+                        label = { Text("%") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Rest Category (Auto-calculated, read-only percent)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = restLabel,
+                        onValueChange = { restLabel = it },
+                        label = { Text("Rest Label") },
+                        modifier = Modifier.weight(1.5f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    OutlinedTextField(
+                        value = "${String.format(java.util.Locale.US, "%.1f", restPercent)}%",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Auto %") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(saving, savingLabel, invest, investLabel, donate, donateLabel, restLabel)
+                },
+                enabled = !isOver100 && !isSaving
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Save")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) { Text("Cancel") }
+        },
+        shape = RoundedCornerShape(24.dp)
+    )
+}

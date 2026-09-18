@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Money Tracker App</string>
+    <string name="app_description">Track money, log income, and see your breakdown and savings grow over time without ads.</string>
+    <!-- Fallback default_web_client_id. When SHA-1 fingerprint is added in Firebase Console and an updated google-services.json is downloaded, the google-services plugin can generate this automatically. -->
+    <string name="default_web_client_id" translatable="false">156997528756-placeholder.apps.googleusercontent.com</string>
+</resources>
