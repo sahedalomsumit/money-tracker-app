@@ -1,5 +1,6 @@
 package com.sahed.money_tracker.data.repository
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
@@ -9,16 +10,32 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-class EntryRepository(private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()) {
+class EntryRepository {
+
+    private val firestore: FirebaseFirestore?
+        get() = try {
+            FirebaseFirestore.getInstance()
+        } catch (e: Exception) {
+            Log.e("EntryRepository", "Firestore not available: ${e.message}")
+            null
+        }
 
     fun getEntriesForYearFlow(uid: String, year: Int): Flow<List<IncomeEntry>> = callbackFlow {
-        val colRef = firestore.collection("users").document(uid)
+        val db = firestore
+        if (db == null) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
+
+        val colRef = db.collection("users").document(uid)
             .collection("entries")
             .whereEqualTo("year", year)
 
         val listener = colRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
-                close(error)
+                Log.w("EntryRepository", "Error listening to year entries: ${error.message}")
+                trySend(emptyList())
                 return@addSnapshotListener
             }
             if (snapshot != null) {
@@ -35,12 +52,20 @@ class EntryRepository(private val firestore: FirebaseFirestore = FirebaseFiresto
     }
 
     fun getAllEntriesFlow(uid: String): Flow<List<IncomeEntry>> = callbackFlow {
-        val colRef = firestore.collection("users").document(uid).collection("entries")
+        val db = firestore
+        if (db == null) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
+
+        val colRef = db.collection("users").document(uid).collection("entries")
             .orderBy("year", Query.Direction.DESCENDING)
 
         val listener = colRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
-                close(error)
+                Log.w("EntryRepository", "Error listening to all entries: ${error.message}")
+                trySend(emptyList())
                 return@addSnapshotListener
             }
             if (snapshot != null) {
@@ -54,7 +79,8 @@ class EntryRepository(private val firestore: FirebaseFirestore = FirebaseFiresto
     }
 
     suspend fun addEntry(uid: String, entry: IncomeEntry): String {
-        val docRef = firestore.collection("users").document(uid)
+        val db = firestore ?: throw IllegalStateException("Firestore not available")
+        val docRef = db.collection("users").document(uid)
             .collection("entries").document()
         val toSave = entry.copy(id = docRef.id)
         docRef.set(toSave.toMap()).await()
@@ -62,14 +88,16 @@ class EntryRepository(private val firestore: FirebaseFirestore = FirebaseFiresto
     }
 
     suspend fun updateEntry(uid: String, entry: IncomeEntry) {
-        firestore.collection("users").document(uid)
+        val db = firestore ?: throw IllegalStateException("Firestore not available")
+        db.collection("users").document(uid)
             .collection("entries").document(entry.id)
             .set(entry.toMap(), SetOptions.merge())
             .await()
     }
 
     suspend fun deleteEntry(uid: String, entryId: String) {
-        firestore.collection("users").document(uid)
+        val db = firestore ?: throw IllegalStateException("Firestore not available")
+        db.collection("users").document(uid)
             .collection("entries").document(entryId)
             .delete()
             .await()

@@ -192,7 +192,7 @@ fun EntryItemCard(
             Text(
                 text = CurrencyHelper.format(entry.netSalary, currencySymbol, currencyCode),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
         }

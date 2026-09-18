@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,9 +46,9 @@ fun CurrencyPickerDialog(
 
     val filteredCurrencies = remember(searchQuery) {
         if (searchQuery.isBlank()) {
-            CountriesData.popularCurrencies
+            CountriesData.allCurrencies
         } else {
-            CountriesData.popularCurrencies.filter {
+            CountriesData.allCurrencies.filter {
                 it.code.contains(searchQuery, ignoreCase = true) ||
                         it.name.contains(searchQuery, ignoreCase = true) ||
                         it.symbol.contains(searchQuery, ignoreCase = true)
@@ -78,7 +79,13 @@ fun CurrencyPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search currency...") },
+                    placeholder = {
+                        Text(
+                            "Search by code, name or symbol...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal
+                        )
+                    },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                     },
@@ -92,43 +99,53 @@ fun CurrencyPickerDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 350.dp)
+                        .heightIn(max = 380.dp)
                 ) {
                     items(filteredCurrencies, key = { it.code }) { currency ->
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(10.dp))
                                 .clickable { onCurrencySelected(currency) },
                             color = MaterialTheme.colorScheme.surface
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                                    .padding(vertical = 12.dp, horizontal = 10.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f, fill = false)) {
                                     Text(
                                         text = currency.code,
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = currency.name,
                                         style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Normal,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
 
-                                Text(
-                                    text = currency.symbol,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                ) {
+                                    Text(
+                                        text = currency.symbol,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
                             }
                         }
                     }

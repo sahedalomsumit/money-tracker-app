@@ -189,6 +189,7 @@ fun OnboardingScreen(
                         Text(
                             text = uiState.googleEmail,
                             style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Light,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -201,7 +202,7 @@ fun OnboardingScreen(
             Text(
                 text = "Sex *",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
@@ -247,7 +248,7 @@ fun OnboardingScreen(
             Text(
                 text = "Country *",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
@@ -275,6 +276,7 @@ fun OnboardingScreen(
                     Text(
                         text = uiState.country.ifBlank { "Select your country" },
                         style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (uiState.country.isNotBlank()) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (uiState.country.isNotBlank()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Icon(
@@ -340,14 +342,14 @@ fun OnboardingScreen(
                             Text(
                                 text = uiState.currencySymbol,
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.ExtraBold,
                                 color = TealPrimary
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = uiState.currencyCode,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -355,6 +357,7 @@ fun OnboardingScreen(
                         Text(
                             text = "Auto-suggested when country is picked",
                             style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -394,7 +397,7 @@ fun OnboardingScreen(
                     Text(
                         text = "Confirm & Continue",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

@@ -1,5 +1,6 @@
 package com.sahed.money_tracker.data.repository
 
+import android.util.Log
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -8,24 +9,39 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-class AuthRepository(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
+class AuthRepository {
+
+    private val auth: FirebaseAuth?
+        get() = try {
+            FirebaseAuth.getInstance()
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "FirebaseAuth not available: ${e.message}")
+            null
+        }
 
     val currentUser: FirebaseUser?
-        get() = auth.currentUser
+        get() = auth?.currentUser
 
     val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            trySend(firebaseAuth.currentUser)
+        val firebaseAuth = auth
+        if (firebaseAuth == null) {
+            trySend(null)
+            close()
+            return@callbackFlow
         }
-        auth.addAuthStateListener(listener)
+        val listener = FirebaseAuth.AuthStateListener { fa ->
+            trySend(fa.currentUser)
+        }
+        firebaseAuth.addAuthStateListener(listener)
         awaitClose {
-            auth.removeAuthStateListener(listener)
+            firebaseAuth.removeAuthStateListener(listener)
         }
     }
 
     suspend fun signInWithCredential(credential: AuthCredential): Result<FirebaseUser> {
+        val firebaseAuth = auth ?: return Result.failure(Exception("Firebase Auth not initialized"))
         return try {
-            val result = auth.signInWithCredential(credential).await()
+            val result = firebaseAuth.signInWithCredential(credential).await()
             val user = result.user
             if (user != null) {
                 Result.success(user)
@@ -38,6 +54,6 @@ class AuthRepository(private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     }
 
     fun signOut() {
-        auth.signOut()
+        auth?.signOut()
     }
 }

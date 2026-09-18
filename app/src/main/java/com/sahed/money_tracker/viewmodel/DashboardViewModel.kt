@@ -57,40 +57,56 @@ class DashboardViewModel(
 
         // Listen to profile
         viewModelScope.launch {
-            profileRepository.getProfileFlow(uid).collectLatest { profile ->
-                if (profile != null) {
-                    _uiState.update { it.copy(userProfile = profile) }
+            try {
+                profileRepository.getProfileFlow(uid).collectLatest { profile ->
+                    if (profile != null) {
+                        _uiState.update { it.copy(userProfile = profile) }
+                    }
                 }
+            } catch (e: Exception) {
+                // Safe catch
             }
         }
 
         // Listen to allocation settings
         viewModelScope.launch {
-            allocationRepository.getAllocationFlow(uid).collectLatest { settings ->
-                _uiState.update { it.copy(allocationSettings = settings) }
+            try {
+                allocationRepository.getAllocationFlow(uid).collectLatest { settings ->
+                    _uiState.update { it.copy(allocationSettings = settings) }
+                }
+            } catch (e: Exception) {
+                // Safe catch
             }
         }
 
         // Listen to main sources
         viewModelScope.launch {
-            sourceRepository.getMainSourcesFlow(uid).collectLatest { sources ->
-                _uiState.update { it.copy(mainSources = sources) }
+            try {
+                sourceRepository.getMainSourcesFlow(uid).collectLatest { sources ->
+                    _uiState.update { it.copy(mainSources = sources) }
+                }
+            } catch (e: Exception) {
+                // Safe catch
             }
         }
 
         // Listen to all entries to find years with data
         viewModelScope.launch {
-            entryRepository.getAllEntriesFlow(uid).collectLatest { allEntries ->
-                val yearsWithData = allEntries.map { it.year }.distinct().sortedDescending()
-                val currentY = DateUtils.getCurrentYear()
-                val years = if (yearsWithData.isEmpty()) {
-                    listOf(currentY)
-                } else if (!yearsWithData.contains(currentY)) {
-                    (listOf(currentY) + yearsWithData).sortedDescending()
-                } else {
-                    yearsWithData
+            try {
+                entryRepository.getAllEntriesFlow(uid).collectLatest { allEntries ->
+                    val yearsWithData = allEntries.map { it.year }.distinct().sortedDescending()
+                    val currentY = DateUtils.getCurrentYear()
+                    val years = if (yearsWithData.isEmpty()) {
+                        listOf(currentY)
+                    } else if (!yearsWithData.contains(currentY)) {
+                        (listOf(currentY) + yearsWithData).sortedDescending()
+                    } else {
+                        yearsWithData
+                    }
+                    _uiState.update { it.copy(availableYears = years) }
                 }
-                _uiState.update { it.copy(availableYears = years) }
+            } catch (e: Exception) {
+                // Safe catch
             }
         }
 
@@ -108,20 +124,24 @@ class DashboardViewModel(
         val uid = authRepository.currentUser?.uid ?: return
         entriesJob?.cancel()
         entriesJob = viewModelScope.launch {
-            entryRepository.getEntriesForYearFlow(uid, year).collectLatest { yearEntries ->
-                // Calculate monthly totals 1..12
-                val totals = (1..12).associateWith { month ->
-                    yearEntries.filter { it.month == month }.sumOf { it.netSalary }
-                }
-                val totalIncome = yearEntries.sumOf { it.netSalary }
+            try {
+                entryRepository.getEntriesForYearFlow(uid, year).collectLatest { yearEntries ->
+                    // Calculate monthly totals 1..12
+                    val totals = (1..12).associateWith { month ->
+                        yearEntries.filter { it.month == month }.sumOf { it.netSalary }
+                    }
+                    val totalIncome = yearEntries.sumOf { it.netSalary }
 
-                _uiState.update {
-                    it.copy(
-                        entries = yearEntries,
-                        monthlyTotals = totals,
-                        totalYearIncome = totalIncome
-                    )
+                    _uiState.update {
+                        it.copy(
+                            entries = yearEntries,
+                            monthlyTotals = totals,
+                            totalYearIncome = totalIncome
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                // Safe catch
             }
         }
     }

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+
 package com.sahed.money_tracker.ui.theme
 
 import androidx.compose.material3.Typography
@@ -8,19 +10,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.sahed.money_tracker.R
 
+import androidx.compose.ui.text.font.FontVariation
+
 val MontserratFamily = FontFamily(
-    Font(R.font.montserrat, FontWeight.Light),
-    Font(R.font.montserrat, FontWeight.Normal),
-    Font(R.font.montserrat, FontWeight.Medium),
-    Font(R.font.montserrat, FontWeight.SemiBold),
-    Font(R.font.montserrat, FontWeight.Bold),
-    Font(R.font.montserrat, FontWeight.ExtraBold)
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.Light,
+        variationSettings = FontVariation.Settings(FontVariation.weight(300))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.Normal,
+        variationSettings = FontVariation.Settings(FontVariation.weight(400))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.Medium,
+        variationSettings = FontVariation.Settings(FontVariation.weight(500))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.SemiBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(600))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(700))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.ExtraBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(800))
+    ),
+    Font(
+        resId = R.font.montserrat,
+        weight = FontWeight.Black,
+        variationSettings = FontVariation.Settings(FontVariation.weight(900))
+    )
 )
 
 val AppTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = MontserratFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 57.sp,
         lineHeight = 64.sp
     ),
@@ -32,7 +65,7 @@ val AppTypography = Typography(
     ),
     displaySmall = TextStyle(
         fontFamily = MontserratFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 36.sp,
         lineHeight = 44.sp
     ),
@@ -44,7 +77,7 @@ val AppTypography = Typography(
     ),
     headlineMedium = TextStyle(
         fontFamily = MontserratFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         lineHeight = 36.sp
     ),
@@ -86,7 +119,7 @@ val AppTypography = Typography(
     ),
     bodySmall = TextStyle(
         fontFamily = MontserratFamily,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Light,
         fontSize = 12.sp,
         lineHeight = 16.sp
     ),
@@ -104,7 +137,7 @@ val AppTypography = Typography(
     ),
     labelSmall = TextStyle(
         fontFamily = MontserratFamily,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
         lineHeight = 16.sp
     )

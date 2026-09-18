@@ -100,8 +100,14 @@ class OnboardingViewModel(
 
                 _uiState.update { it.copy(isLoading = false, isComplete = true) }
             } catch (e: Exception) {
+                val rawMsg = e.localizedMessage ?: "Failed to save profile"
+                val friendlyMsg = if (rawMsg.contains("PERMISSION_DENIED", ignoreCase = true) || rawMsg.contains("permission", ignoreCase = true)) {
+                    "Permission denied: Cloud Firestore security rules are blocking writes. Please publish the project's firestore.rules in Firebase Console."
+                } else {
+                    rawMsg
+                }
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Failed to save profile")
+                    it.copy(isLoading = false, errorMessage = friendlyMsg)
                 }
             }
         }

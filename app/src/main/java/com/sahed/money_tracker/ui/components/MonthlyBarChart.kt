@@ -146,6 +146,7 @@ fun MonthlyBarChart(
                             val leftPadding = 50f
                             val rightPadding = 10f
                             val chartWidth = size.width - leftPadding - rightPadding
+                            if (chartWidth <= 0f) return@detectTapGestures
                             val barSlot = chartWidth / 12f
 
                             if (offset.x >= leftPadding && offset.x <= size.width - rightPadding) {
@@ -156,6 +157,7 @@ fun MonthlyBarChart(
                         }
                     }
             ) {
+                if (size.width <= 100f || size.height <= 100f) return@Canvas
                 val leftPadding = 80f
                 val bottomPadding = 45f
                 val topPadding = 20f

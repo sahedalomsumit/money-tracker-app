@@ -80,7 +80,13 @@ fun CountryPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search country or currency...") },
+                    placeholder = {
+                        Text(
+                            "Search country or currency...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal
+                        )
+                    },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                     },
@@ -94,43 +100,54 @@ fun CountryPickerDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 350.dp)
+                        .heightIn(max = 380.dp)
                 ) {
                     items(filteredCountries, key = { it.countryCode }) { country ->
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(10.dp))
                                 .clickable { onCountrySelected(country) },
                             color = MaterialTheme.colorScheme.surface
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                                    .padding(vertical = 12.dp, horizontal = 10.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                ) {
                                     Text(
                                         text = country.flag,
-                                        fontSize = 22.sp
+                                        fontSize = 24.sp
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(
                                         text = country.countryName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
-                                Text(
-                                    text = "${country.defaultCurrencySymbol} ${country.defaultCurrencyCode}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                ) {
+                                    Text(
+                                        text = "${country.defaultCurrencySymbol} ${country.defaultCurrencyCode}",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }

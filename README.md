@@ -61,6 +61,27 @@ keytool -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias and
 4. Paste your **SHA-1** fingerprint and click **Save**.
 5. *(Optional)* Download the updated `google-services.json` and place it in `app/google-services.json` if you'd like the web client ID to automatically refresh.
 
+### 3. Configure Cloud Firestore Security Rules
+To resolve `PERMISSION_DENIED: Missing or insufficient permissions` when saving user data:
+1. Open the [Firebase Console - Firestore Rules](https://console.firebase.google.com/project/money-tracker-99/firestore/rules).
+2. Replace the existing rules with the following (also available in `firestore.rules`):
+```firestore
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each authenticated user has full access to their own data tree
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+3. Click **Publish**. Alternatively, if you have Firebase CLI installed:
+```powershell
+firebase deploy --only firestore:rules
+```
+
 ---
 
 ## Project Structure
