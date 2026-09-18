@@ -53,7 +53,6 @@ import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
-import com.sahed.money_tracker.ui.theme.ChartWorstMonth
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.util.MathExpressionEvaluator
 

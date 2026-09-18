@@ -1,15 +1,16 @@
 package com.sahed.money_tracker.ui.navigation
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,6 +27,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sahed.money_tracker.ui.components.MoneyBottomBar
+import com.sahed.money_tracker.ui.designsystem.theme.BottomSheetShape
+import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.ui.screens.auth.LoginScreen
 import com.sahed.money_tracker.ui.screens.dashboard.DashboardScreen
 import com.sahed.money_tracker.ui.screens.entry.AddEntryScreen
@@ -46,6 +51,7 @@ object AppRoutes {
     const val MANAGE_SOURCES = "manage_sources"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
@@ -178,28 +184,35 @@ fun AppNavGraph(
                 }
             }
 
-            // Fullscreen Add Entry Overlay when center "+" is pressed from anywhere
-            AnimatedVisibility(
-                visible = showAddEntrySheet,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            ) {
-                BackHandler(enabled = showAddEntrySheet) {
-                    showAddEntrySheet = false
-                }
-                val addEntryViewModel: AddEntryViewModel = viewModel()
-                AddEntryScreen(
-                    viewModel = addEntryViewModel,
-                    onEntrySaved = {
-                        showAddEntrySheet = false
-                    },
-                    onDismiss = {
-                        showAddEntrySheet = false
+            // Swipeable Add Entry Modal Bottom Sheet when center "+" is pressed from anywhere
+            if (showAddEntrySheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showAddEntrySheet = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    shape = BottomSheetShape,
+                    containerColor = EmeraldTheme.extended.surfaceTier2,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 12.dp)
+                                .width(40.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(EmeraldTheme.extended.subText.copy(alpha = 0.4f))
+                        )
                     }
-                )
+                ) {
+                    val addEntryViewModel: AddEntryViewModel = viewModel()
+                    AddEntryScreen(
+                        viewModel = addEntryViewModel,
+                        onEntrySaved = {
+                            showAddEntrySheet = false
+                        },
+                        onDismiss = {
+                            showAddEntrySheet = false
+                        }
+                    )
+                }
             }
         }
     }

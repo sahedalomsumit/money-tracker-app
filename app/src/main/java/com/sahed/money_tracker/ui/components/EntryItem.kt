@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.data.model.IncomeEntry
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldGlassCard
@@ -86,28 +87,24 @@ fun EntryItemCard(
                 Spacer(modifier = Modifier.width(14.dp))
 
                 Column {
-                    val sourceText = buildString {
-                        append(entry.mainSourceName.ifBlank { "Income" })
-                        if (!entry.subSourceName.isNullOrBlank()) {
-                            append(" • ")
-                            append(entry.subSourceName)
-                        }
-                    }
-
                     Text(
-                        text = sourceText,
+                        text = entry.mainSourceName.ifBlank { "Income" },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     Spacer(modifier = Modifier.height(2.dp))
 
+                    val subSourceDisplay = entry.subSourceName?.takeIf { it.isNotBlank() } ?: "Direct"
                     Text(
-                        text = "${DateUtils.getMonthFullName(entry.month)} ${entry.year}",
+                        text = subSourceDisplay,
                         style = MaterialTheme.typography.bodySmall,
-                        color = EmeraldTheme.extended.subText
+                        color = EmeraldTheme.extended.subText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

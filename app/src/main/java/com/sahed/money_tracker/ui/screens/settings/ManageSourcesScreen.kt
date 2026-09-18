@@ -63,7 +63,6 @@ import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
-import com.sahed.money_tracker.ui.theme.ChartWorstMonth
 import com.sahed.money_tracker.viewmodel.ManageSourcesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -474,7 +473,7 @@ fun ManageSourcesScreen(
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = "Delete",
-                                    tint = ChartWorstMonth,
+                                    tint = EmeraldPalette.ErrorRed,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -658,7 +657,7 @@ fun ManageSourcesScreen(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Delete",
-                                        tint = ChartWorstMonth,
+                                        tint = EmeraldPalette.ErrorRed,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }

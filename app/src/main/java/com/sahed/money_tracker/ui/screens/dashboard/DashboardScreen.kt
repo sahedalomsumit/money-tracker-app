@@ -173,7 +173,7 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 1. Total Income Card (Emerald Hero Banner)
-            item {
+            item(key = "total_income_card") {
                 TotalIncomeCard(
                     totalSalary = uiState.totalYearIncome,
                     currencySymbol = uiState.userProfile.currencySymbol,
@@ -183,7 +183,7 @@ fun DashboardScreen(
             }
 
             // 2. 4-Category Allocation Breakdown Grid (Saving, Investing, Donate, Rest)
-            item {
+            item(key = "allocation_grid") {
                 AllocationBreakdownGrid(
                     totalSalary = uiState.totalYearIncome,
                     allocation = uiState.allocationSettings,
@@ -195,7 +195,7 @@ fun DashboardScreen(
             }
 
             // 3. Monthly Bar Chart (Monthly Overview)
-            item {
+            item(key = "monthly_bar_chart") {
                 MonthlyBarChart(
                     monthlyTotals = uiState.monthlyTotals,
                     currencySymbol = uiState.userProfile.currencySymbol,
@@ -204,7 +204,7 @@ fun DashboardScreen(
             }
 
             // 4. Source Breakdown Card with Drilldown (Collapsible & Expandable)
-            item {
+            item(key = "source_breakdown_card") {
                 SourceBreakdownCard(
                     entries = uiState.entries,
                     totalYearIncome = uiState.totalYearIncome,
@@ -214,7 +214,7 @@ fun DashboardScreen(
             }
 
             // 5. Entries List Header
-            item {
+            item(key = "entries_header") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -233,7 +233,7 @@ fun DashboardScreen(
 
             // 6. Entries List items
             if (uiState.entries.isEmpty()) {
-                item {
+                item(key = "empty_entries") {
                     EmeraldGlassCard(
                         cornerRadius = 18.dp,
                         modifier = Modifier.fillMaxWidth()

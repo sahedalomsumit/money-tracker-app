@@ -35,7 +35,7 @@ val DonateColor = EmeraldPalette.AccentPurple  // Orchid Purple
 val RestColor = EmeraldPalette.WarningAmber    // Warm Amber
 
 // Chart Highlights
-val ChartBestMonth = EmeraldPalette.EmeraldGlow   // High-contrast glow
-val ChartWorstMonth = EmeraldPalette.ErrorRed     // Coral red
-val ChartDefaultBar = EmeraldPalette.SoftEmerald  // Soft emerald
+val ChartBestMonth = Color(0xFF6EE7B7)   // Lighter mint emerald (peak)
+val ChartWorstMonth = Color(0xFF1B5E4B)  // Darker variant of primary SoftEmerald (low - not red)
+val ChartDefaultBar = EmeraldPalette.SoftEmerald  // Soft emerald (avg)
 val ChartMutedBar = EmeraldPalette.Surface3Dark   // Surface tier 3

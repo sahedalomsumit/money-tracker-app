@@ -69,6 +69,9 @@ import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.util.MathExpressionEvaluator
 import com.sahed.money_tracker.viewmodel.AddEntryViewModel
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+
 @Composable
 fun AddEntryScreen(
     viewModel: AddEntryViewModel,
@@ -158,17 +161,21 @@ fun AddEntryScreen(
     }
 
     Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-        color = MaterialTheme.colorScheme.background
+        modifier = modifier.fillMaxSize(),
+        color = Color.Transparent
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Pinned/Fixed Header Row with Close Icon - stays visible on scroll!
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                }
+        ) {
+            // Pinned/Fixed Header Row with Close Icon
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -184,7 +191,10 @@ fun AddEntryScreen(
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = onDismiss),
+                        .clickable(onClick = {
+                            focusManager.clearFocus()
+                            onDismiss()
+                        }),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -210,464 +220,493 @@ fun AddEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                // Month selector
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Month",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { monthDropdownExpanded = true }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = DateUtils.getMonthShortName(uiState.month),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    DropdownMenu(
-                        expanded = monthDropdownExpanded,
-                        onDismissRequest = { monthDropdownExpanded = false }
-                    ) {
-                        (1..12).forEach { m ->
-                            DropdownMenuItem(
-                                text = { Text(DateUtils.getMonthFullName(m)) },
-                                onClick = {
-                                    viewModel.setMonth(m)
-                                    monthDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Year selector
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Year",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { yearDropdownExpanded = true }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = uiState.year.toString(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    DropdownMenu(
-                        expanded = yearDropdownExpanded,
-                        onDismissRequest = { yearDropdownExpanded = false }
-                    ) {
-                        DateUtils.getAvailableYears().forEach { y ->
-                            DropdownMenuItem(
-                                text = { Text(y.toString()) },
-                                onClick = {
-                                    viewModel.setYear(y)
-                                    yearDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Net Salary Input with Inline Math Expressions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
-                    Surface(
-                        onClick = { viewModel.evaluateAndApplySalary() },
-                        shape = RoundedCornerShape(6.dp),
-                        color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
-                    ) {
+                    // Month selector
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "= ${CurrencyHelper.format(uiState.salaryAmount, uiState.userProfile.currencySymbol.ifBlank { "$" }, uiState.userProfile.currencyCode)} (Tap to apply)",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = EmeraldPalette.SoftEmerald
+                            text = "Month",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    focusManager.clearFocus()
+                                    monthDropdownExpanded = true
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = DateUtils.getMonthShortName(uiState.month),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = monthDropdownExpanded,
+                            onDismissRequest = { monthDropdownExpanded = false }
+                        ) {
+                            (1..12).forEach { m ->
+                                DropdownMenuItem(
+                                    text = { Text(DateUtils.getMonthFullName(m)) },
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        viewModel.setMonth(m)
+                                        monthDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Year selector
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Year",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    focusManager.clearFocus()
+                                    yearDropdownExpanded = true
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = uiState.year.toString(),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = yearDropdownExpanded,
+                            onDismissRequest = { yearDropdownExpanded = false }
+                        ) {
+                            DateUtils.getAvailableYears().forEach { y ->
+                                DropdownMenuItem(
+                                    text = { Text(y.toString()) },
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        viewModel.setYear(y)
+                                        yearDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = uiState.salaryInput,
-                onValueChange = { input ->
-                    if (input.endsWith("=")) {
-                        // User typed '=' -> automatically calculate and apply
-                        viewModel.evaluateAndApplySalary()
-                    } else {
-                        viewModel.setSalaryInput(input)
-                    }
-                },
-                placeholder = { Text("905.95 or e.g. (33+17)-10") },
-                leadingIcon = {
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Net Salary Input with Inline Math Expressions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = uiState.userProfile.currencySymbol.ifBlank { "$" },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = EmeraldPalette.SoftEmerald,
-                        modifier = Modifier.padding(start = 12.dp)
+                        text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                },
-                trailingIcon = {
                     if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
                         Surface(
-                            onClick = { viewModel.evaluateAndApplySalary() },
-                            shape = RoundedCornerShape(8.dp),
-                            color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f)),
-                            modifier = Modifier.padding(end = 8.dp)
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.evaluateAndApplySalary()
+                            },
+                            shape = RoundedCornerShape(6.dp),
+                            color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                text = "= ${CurrencyHelper.format(uiState.salaryAmount, uiState.userProfile.currencySymbol.ifBlank { "$" }, uiState.userProfile.currencyCode)} (Tap to apply)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = EmeraldPalette.SoftEmerald
                             )
                         }
                     }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        viewModel.evaluateAndApplySalary()
-                        focusManager.clearFocus()
-                    }
-                ),
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Main Source Dropdown
-            Text(
-                text = "Main Source *",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Box {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { mainSourceDropdownExpanded = true }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = uiState.salaryInput,
+                    onValueChange = { input ->
+                        if (input.endsWith("=")) {
+                            viewModel.evaluateAndApplySalary()
+                            focusManager.clearFocus()
+                        } else {
+                            viewModel.setSalaryInput(input)
+                        }
+                    },
+                    placeholder = { Text("905.95 or e.g. (33+17)-10") },
+                    leadingIcon = {
                         Text(
-                            text = uiState.selectedMainSource?.name ?: "Select Main Source",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (uiState.selectedMainSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                            text = uiState.userProfile.currencySymbol.ifBlank { "$" },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = EmeraldPalette.SoftEmerald,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                DropdownMenu(
-                    expanded = mainSourceDropdownExpanded,
-                    onDismissRequest = { mainSourceDropdownExpanded = false }
-                ) {
-                    uiState.mainSources.forEach { source ->
-                        DropdownMenuItem(
-                            text = { Text(source.name) },
-                            onClick = {
-                                viewModel.selectMainSource(source)
-                                mainSourceDropdownExpanded = false
+                    },
+                    trailingIcon = {
+                        if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
+                            Surface(
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    viewModel.evaluateAndApplySalary()
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f)),
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                Text(
+                                    text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = EmeraldPalette.SoftEmerald
+                                )
                             }
-                        )
-                    }
-                }
-            }
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            viewModel.evaluateAndApplySalary()
+                            focusManager.clearFocus()
+                        }
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-            Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-            // Sub-Source Dropdown with inline "+ Add New"
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                // Main Source Dropdown
                 Text(
-                    text = "Sub-Source (Optional)",
+                    text = "Main Source *",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                if (uiState.selectedMainSource != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                Spacer(modifier = Modifier.height(4.dp))
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        ),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable { showAddSubSourceDialog = true }
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                focusManager.clearFocus()
+                                mainSourceDropdownExpanded = true
+                            }
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = EmeraldPalette.SoftEmerald,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Add new",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = EmeraldPalette.SoftEmerald
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Box {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { subSourceDropdownExpanded = true }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = uiState.selectedSubSource?.name ?: "None / Direct",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (uiState.selectedSubSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                DropdownMenu(
-                    expanded = subSourceDropdownExpanded,
-                    onDismissRequest = { subSourceDropdownExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("None / Direct") },
-                        onClick = {
-                            viewModel.selectSubSource(null)
-                            subSourceDropdownExpanded = false
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = uiState.selectedMainSource?.name ?: "Select Main Source",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (uiState.selectedMainSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+                    }
+
+                    DropdownMenu(
+                        expanded = mainSourceDropdownExpanded,
+                        onDismissRequest = { mainSourceDropdownExpanded = false }
+                    ) {
+                        uiState.mainSources.forEach { source ->
+                            DropdownMenuItem(
+                                text = { Text(source.name) },
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    viewModel.selectMainSource(source)
+                                    mainSourceDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Sub-Source Dropdown with inline "+ Add New"
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Sub-Source (Optional)",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    uiState.subSources.forEach { sub ->
+
+                    if (uiState.selectedMainSource != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable {
+                                    focusManager.clearFocus()
+                                    showAddSubSourceDialog = true
+                                }
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = EmeraldPalette.SoftEmerald,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Add new",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = EmeraldPalette.SoftEmerald
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                focusManager.clearFocus()
+                                subSourceDropdownExpanded = true
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = uiState.selectedSubSource?.name ?: "None / Direct",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (uiState.selectedSubSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = subSourceDropdownExpanded,
+                        onDismissRequest = { subSourceDropdownExpanded = false }
+                    ) {
                         DropdownMenuItem(
-                            text = { Text(sub.name) },
+                            text = { Text("None / Direct") },
                             onClick = {
-                                viewModel.selectSubSource(sub)
+                                focusManager.clearFocus()
+                                viewModel.selectSubSource(null)
                                 subSourceDropdownExpanded = false
                             }
                         )
+                        uiState.subSources.forEach { sub ->
+                            DropdownMenuItem(
+                                text = { Text(sub.name) },
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    viewModel.selectSubSource(sub)
+                                    subSourceDropdownExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Live Allocation Breakdown Preview
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Live Allocation Preview",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    val salary = uiState.salaryAmount
-                    val alloc = uiState.allocationSettings
-                    val symbol = uiState.userProfile.currencySymbol.ifBlank { "$" }
-                    val code = uiState.userProfile.currencyCode
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        LivePreviewChip(
-                            label = alloc.savingLabel,
-                            percent = alloc.savingPercent,
-                            amount = salary * (alloc.savingPercent / 100.0),
-                            symbol = symbol,
-                            color = SavingColor,
-                            modifier = Modifier.weight(1f)
+                // Live Allocation Breakdown Preview
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Live Allocation Preview",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        LivePreviewChip(
-                            label = alloc.investLabel,
-                            percent = alloc.investPercent,
-                            amount = salary * (alloc.investPercent / 100.0),
-                            symbol = symbol,
-                            color = InvestColor,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val salary = uiState.salaryAmount
+                        val alloc = uiState.allocationSettings
+                        val symbol = uiState.userProfile.currencySymbol.ifBlank { "$" }
+                        val code = uiState.userProfile.currencyCode
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            LivePreviewChip(
+                                label = alloc.savingLabel,
+                                percent = alloc.savingPercent,
+                                amount = salary * (alloc.savingPercent / 100.0),
+                                symbol = symbol,
+                                color = SavingColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                            LivePreviewChip(
+                                label = alloc.investLabel,
+                                percent = alloc.investPercent,
+                                amount = salary * (alloc.investPercent / 100.0),
+                                symbol = symbol,
+                                color = InvestColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            LivePreviewChip(
+                                label = alloc.donateLabel,
+                                percent = alloc.donatePercent,
+                                amount = salary * (alloc.donatePercent / 100.0),
+                                symbol = symbol,
+                                color = DonateColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                            LivePreviewChip(
+                                label = alloc.restLabel,
+                                percent = alloc.restPercent,
+                                amount = salary * (alloc.restPercent / 100.0),
+                                symbol = symbol,
+                                color = RestColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        LivePreviewChip(
-                            label = alloc.donateLabel,
-                            percent = alloc.donatePercent,
-                            amount = salary * (alloc.donatePercent / 100.0),
-                            symbol = symbol,
-                            color = DonateColor,
-                            modifier = Modifier.weight(1f)
+                // Save Button
+                Button(
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.saveEntry()
+                    },
+                    enabled = uiState.isValid && !uiState.isSaving,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EmeraldPalette.SoftEmerald,
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                ) {
+                    if (uiState.isSaving) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
                         )
-                        LivePreviewChip(
-                            label = alloc.restLabel,
-                            percent = alloc.restPercent,
-                            amount = salary * (alloc.restPercent / 100.0),
-                            symbol = symbol,
-                            color = RestColor,
-                            modifier = Modifier.weight(1f)
+                    } else {
+                        Text(
+                            text = "Save Entry",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Save Button
-            Button(
-                onClick = { viewModel.saveEntry() },
-                enabled = uiState.isValid && !uiState.isSaving,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = EmeraldPalette.SoftEmerald,
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            ) {
-                if (uiState.isSaving) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Save Entry",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
-}
 }
 
 @Composable

@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,9 +60,9 @@ fun SourceBreakdownCard(
     currencySymbol: String,
     currencyCode: String,
     modifier: Modifier = Modifier,
-    initiallyExpanded: Boolean = false
+    initiallyExpanded: Boolean = true
 ) {
-    var isExpanded by remember { mutableStateOf(initiallyExpanded) }
+    var isExpanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
 
     // Compute breakdown by main source
     val breakdown = remember(entries, totalYearIncome) {
@@ -199,7 +200,7 @@ private fun SourceBreakdownItem(
     currencySymbol: String,
     currencyCode: String
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable(summary.mainSourceName) { mutableStateOf(false) }
 
     Surface(
         shape = RoundedCornerShape(14.dp),

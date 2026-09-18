@@ -69,14 +69,26 @@ fun MonthlyBarChart(
         (monthlyTotals.values.maxOrNull() ?: 0.0).coerceAtLeast(100.0)
     }
 
+    val positiveMonths = remember(monthlyTotals) {
+        monthlyTotals.filter { it.value > 0 }
+    }
+
+    // Average monthly income across positive months (or 0.0 if no entries)
+    val averageMonthlyIncome = remember(positiveMonths) {
+        if (positiveMonths.isNotEmpty()) {
+            positiveMonths.values.average()
+        } else {
+            0.0
+        }
+    }
+
     // Best month has the highest income (> 0)
-    val bestMonth = remember(monthlyTotals) {
-        monthlyTotals.filter { it.value > 0 }.maxByOrNull { it.value }?.key
+    val bestMonth = remember(positiveMonths) {
+        positiveMonths.maxByOrNull { it.value }?.key
     }
 
     // Worst month has the lowest non-zero income, or if all > 0 have variation
-    val worstMonth = remember(monthlyTotals, bestMonth) {
-        val positiveMonths = monthlyTotals.filter { it.value > 0 }
+    val worstMonth = remember(positiveMonths, bestMonth) {
         if (positiveMonths.size > 1) {
             positiveMonths.minByOrNull { it.value }?.key
         } else null
@@ -94,35 +106,58 @@ fun MonthlyBarChart(
             )
             .padding(18.dp)
     ) {
-        // Chart Header with Selected Tooltip or Legends
+        // Chart Header: Title on left, Average Monthly Income on top right
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Text(
+                text = "Monthly Overview",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Top right side: average monthly income
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "Monthly Overview",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "Avg Monthly",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = EmeraldTheme.extended.subText
                 )
-                if (selectedMonth != null) {
-                    val selM = selectedMonth!!
-                    val amt = monthlyTotals[selM] ?: 0.0
-                    Text(
-                        text = "${DateUtils.getMonthFullName(selM)}: ${CurrencyHelper.format(amt, currencySymbol, currencyCode)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                } else {
-                    Text(
-                        text = "Tap a bar to inspect details",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = CurrencyHelper.format(averageMonthlyIncome, currencySymbol, currencyCode),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = EmeraldPalette.SoftEmerald
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Subheader: Tap hint / Selected month details on left, Legend tags on right
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (selectedMonth != null) {
+                val selM = selectedMonth!!
+                val amt = monthlyTotals[selM] ?: 0.0
+                Text(
+                    text = "${DateUtils.getMonthFullName(selM)}: ${CurrencyHelper.format(amt, currencySymbol, currencyCode)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+            } else {
+                Text(
+                    text = "Tap a bar to inspect details",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             // Legend tags
@@ -137,7 +172,7 @@ fun MonthlyBarChart(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Canvas Bar Chart
         val axisColor = MaterialTheme.colorScheme.outline

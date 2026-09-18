@@ -311,12 +311,23 @@ fun AllocationCategoryCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Tap for details",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                color = color.copy(alpha = 0.90f),
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "View breakdown",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = color.copy(alpha = 0.90f),
+                    fontWeight = FontWeight.SemiBold
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = null,
+                    tint = color.copy(alpha = 0.90f),
+                    modifier = Modifier.size(9.dp)
+                )
+            }
         }
     }
 }
@@ -580,7 +591,7 @@ fun AllocationMonthlyBreakdownBottomSheet(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "💡 Transfer these monthly amounts from your main salary account to your ${category.label} account or vault.",
+                        text = "💡 Monthly amounts allocated automatically based on your logged income for ${category.label}.",
                         style = MaterialTheme.typography.bodySmall,
                         color = EmeraldTheme.extended.subText,
                         lineHeight = 18.sp
@@ -592,7 +603,7 @@ fun AllocationMonthlyBreakdownBottomSheet(
 
             // Monthly Breakdown List Title
             Text(
-                text = "Monthly Transfer Breakdown (12 Months)",
+                text = "12-Month Allocation Breakdown",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -664,19 +675,12 @@ fun AllocationMonthlyBreakdownBottomSheet(
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(
-                                        text = formattedAllocated,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (monthAllocated > 0) category.color else EmeraldTheme.extended.subText
-                                    )
-                                    Text(
-                                        text = "to transfer",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        color = EmeraldTheme.extended.subText
-                                    )
-                                }
+                                Text(
+                                    text = formattedAllocated,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (monthAllocated > 0) category.color else EmeraldTheme.extended.subText
+                                )
 
                                 if (monthAllocated > 0) {
                                     Spacer(modifier = Modifier.width(8.dp))

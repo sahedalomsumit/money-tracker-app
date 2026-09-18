@@ -85,7 +85,6 @@ import com.sahed.money_tracker.ui.designsystem.components.EmeraldOptionRow
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
-import com.sahed.money_tracker.ui.theme.ChartWorstMonth
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.viewmodel.SettingsUiState
 import com.sahed.money_tracker.viewmodel.SettingsViewModel
@@ -719,8 +718,8 @@ private fun AllocationEditDialog(
                 if (isOver100 || errorMessage != null) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = ChartWorstMonth.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, ChartWorstMonth),
+                        color = EmeraldPalette.ErrorRed.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.ErrorRed),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -730,14 +729,14 @@ private fun AllocationEditDialog(
                             Icon(
                                 imageVector = Icons.Default.ErrorOutline,
                                 contentDescription = null,
-                                tint = ChartWorstMonth,
+                                tint = EmeraldPalette.ErrorRed,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = errorMessage ?: "Total percentages sum to ${String.format(java.util.Locale.US, "%.1f", sum)}% (cannot exceed 100%).",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = ChartWorstMonth,
+                                color = EmeraldPalette.ErrorRed,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
