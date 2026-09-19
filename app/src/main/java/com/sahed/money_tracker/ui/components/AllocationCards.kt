@@ -1,12 +1,20 @@
 package com.sahed.money_tracker.ui.components
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -217,7 +225,11 @@ fun AllocationCategoryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val fillFraction = (percent.toFloat() / 100f).coerceIn(0f, 1f)
+    val animatedFillFraction by animateFloatAsState(
+        targetValue = (percent.toFloat() / 100f).coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        label = "allocationFillAnim"
+    )
 
     EmeraldGlassCard(
         modifier = modifier,
@@ -240,7 +252,7 @@ fun AllocationCategoryCard(
             )
             // Animated water wave filling from bottom to top
             WaterWaveBackground(
-                fillFraction = fillFraction,
+                fillFraction = animatedFillFraction,
                 color = color,
                 modifier = Modifier.fillMaxSize()
             )
@@ -291,17 +303,26 @@ fun AllocationCategoryCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = CurrencyHelper.format(amount, currencySymbol, currencyCode),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            AnimatedContent(
+                targetState = amount,
+                transitionSpec = {
+                    (slideInVertically(animationSpec = tween(300, easing = FastOutSlowInEasing)) { height -> height / 3 } + fadeIn(animationSpec = tween(300)))
+                        .togetherWith(slideOutVertically(animationSpec = tween(250, easing = FastOutSlowInEasing)) { height -> -height / 3 } + fadeOut(animationSpec = tween(250)))
+                },
+                label = "allocationCardAmountAnim"
+            ) { targetAmount ->
+                Text(
+                    text = CurrencyHelper.format(targetAmount, currencySymbol, currencyCode),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
             LinearProgressIndicator(
-                progress = { fillFraction },
+                progress = { animatedFillFraction },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(5.dp)

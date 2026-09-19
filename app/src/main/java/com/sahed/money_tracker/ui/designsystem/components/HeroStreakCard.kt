@@ -1,5 +1,13 @@
 package com.sahed.money_tracker.ui.designsystem.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +72,7 @@ fun EmeraldHeroBanner(
             )
             .clip(RoundedCornerShape(20.dp))
             .background(brush = gradient)
-            .clickable(onClick = onClick)
+            .bouncyClickable(pressedScale = 0.98f, onClick = onClick)
             .padding(24.dp)
     } else {
         modifier
@@ -96,14 +104,23 @@ fun EmeraldHeroBanner(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.displayLarge.copy(
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        ),
-                        color = EmeraldPalette.LightText
-                    )
+                    AnimatedContent(
+                        targetState = value,
+                        transitionSpec = {
+                            (slideInVertically(animationSpec = tween(320, easing = FastOutSlowInEasing)) { height -> height / 3 } + fadeIn(animationSpec = tween(320)))
+                                .togetherWith(slideOutVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { height -> -height / 3 } + fadeOut(animationSpec = tween(280)))
+                        },
+                        label = "heroValueAnim"
+                    ) { targetValue ->
+                        Text(
+                            text = targetValue,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            ),
+                            color = EmeraldPalette.LightText
+                        )
+                    }
                     if (unit.isNotBlank()) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(

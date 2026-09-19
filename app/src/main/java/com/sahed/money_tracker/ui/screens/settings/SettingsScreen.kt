@@ -4,6 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -629,13 +632,31 @@ private fun ThemeOptionChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) EmeraldPalette.SoftEmerald.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "themeChipBg"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) EmeraldPalette.SoftEmerald else Color.Transparent,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "themeChipBorder"
+    )
+    val iconTint by animateColorAsState(
+        targetValue = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "themeChipIcon"
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurface,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "themeChipText"
+    )
+
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (selected) EmeraldPalette.SoftEmerald.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (selected) EmeraldPalette.SoftEmerald else Color.Transparent
-        ),
+        color = bgColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
@@ -648,7 +669,7 @@ private fun ThemeOptionChip(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = iconTint,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
@@ -656,7 +677,7 @@ private fun ThemeOptionChip(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurface
+                color = textColor
             )
         }
     }

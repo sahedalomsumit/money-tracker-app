@@ -1,7 +1,14 @@
 package com.sahed.money_tracker.ui.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -61,7 +68,10 @@ fun MonthlyBarChart(
 
     LaunchedEffect(monthlyTotals) {
         animatedProgress.snapTo(0f)
-        animatedProgress.animateTo(1f, animationSpec = tween(durationMillis = 700))
+        animatedProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing)
+        )
     }
 
     val maxAmount = remember(monthlyTotals) {
@@ -113,12 +123,21 @@ fun MonthlyBarChart(
                     style = MaterialTheme.typography.labelSmall,
                     color = EmeraldTheme.extended.subText
                 )
-                Text(
-                    text = CurrencyHelper.format(averageMonthlyIncome, currencySymbol, currencyCode),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = EmeraldPalette.SoftEmerald
-                )
+                AnimatedContent(
+                    targetState = averageMonthlyIncome,
+                    transitionSpec = {
+                        (slideInVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { height -> height / 3 } + fadeIn(animationSpec = tween(280)))
+                            .togetherWith(slideOutVertically(animationSpec = tween(240, easing = FastOutSlowInEasing)) { height -> -height / 3 } + fadeOut(animationSpec = tween(240)))
+                    },
+                    label = "avgMonthlyIncomeAnim"
+                ) { avg ->
+                    Text(
+                        text = CurrencyHelper.format(avg, currencySymbol, currencyCode),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = EmeraldPalette.SoftEmerald
+                    )
+                }
             }
         }
 
@@ -130,21 +149,29 @@ fun MonthlyBarChart(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (selectedMonth != null) {
-                val selM = selectedMonth!!
-                val amt = monthlyTotals[selM] ?: 0.0
-                Text(
-                    text = "${DateUtils.getMonthFullName(selM)}: ${CurrencyHelper.format(amt, currencySymbol, currencyCode)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-            } else {
-                Text(
-                    text = "Tap a bar to inspect details",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            AnimatedContent(
+                targetState = selectedMonth,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(240)) + slideInVertically(animationSpec = tween(240, easing = FastOutSlowInEasing)) { height -> height / 3 })
+                        .togetherWith(fadeOut(animationSpec = tween(180)) + slideOutVertically(animationSpec = tween(180, easing = FastOutSlowInEasing)) { height -> -height / 3 })
+                },
+                label = "monthChartDetailAnim"
+            ) { selM ->
+                if (selM != null) {
+                    val amt = monthlyTotals[selM] ?: 0.0
+                    Text(
+                        text = "${DateUtils.getMonthFullName(selM)}: ${CurrencyHelper.format(amt, currencySymbol, currencyCode)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = EmeraldPalette.SoftEmerald,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                } else {
+                    Text(
+                        text = "Tap a bar to inspect details",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 

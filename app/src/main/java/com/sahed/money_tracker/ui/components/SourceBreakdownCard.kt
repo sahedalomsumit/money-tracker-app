@@ -1,7 +1,9 @@
 package com.sahed.money_tracker.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -169,7 +171,13 @@ private fun SourceBreakdownItem(
     var isSubSourcesExpanded by rememberSaveable { mutableStateOf(false) }
     val arrowRotation by animateFloatAsState(
         targetValue = if (isSubSourcesExpanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "subSourcesArrowRotation"
+    )
+    val animatedProgress by animateFloatAsState(
+        targetValue = (summary.percentage / 100f).toFloat().coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        label = "sourceBreakdownProgress"
     )
     val hasSubSources = summary.subSourceBreakdown.isNotEmpty()
 
@@ -207,7 +215,7 @@ private fun SourceBreakdownItem(
             Spacer(modifier = Modifier.height(8.dp))
 
             LinearProgressIndicator(
-                progress = { (summary.percentage / 100f).toFloat().coerceIn(0f, 1f) },
+                progress = { animatedProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -268,8 +276,8 @@ private fun SourceBreakdownItem(
             // Sub-sources breakdown: collapsed by default, smoothly expanded when toggled
             AnimatedVisibility(
                 visible = isSubSourcesExpanded && hasSubSources,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+                enter = fadeIn(animationSpec = tween(280)) + expandVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)),
+                exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(animationSpec = tween(200, easing = FastOutSlowInEasing))
             ) {
                 Column {
                     Spacer(modifier = Modifier.height(10.dp))

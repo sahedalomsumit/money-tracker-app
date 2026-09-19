@@ -1,5 +1,13 @@
 package com.sahed.money_tracker.ui.screens.entry
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -163,51 +171,57 @@ fun EntriesScreen(
                         }
                     }
 
-                    // Optional expandable search bar
-                    if (isSearchVisible) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = uiState.searchQuery,
-                            onValueChange = { viewModel.setSearchQuery(it) },
-                            placeholder = {
-                                Text(
-                                    text = "Search by source name...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = EmeraldTheme.extended.subText.copy(alpha = 0.6f)
-                                )
-                            },
-                            singleLine = true,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = EmeraldPalette.SoftEmerald,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            trailingIcon = {
-                                if (uiState.searchQuery.isNotEmpty()) {
-                                    IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Clear,
-                                            contentDescription = "Clear",
-                                            tint = EmeraldTheme.extended.subText,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                    // Expandable search bar with gentle slide and fade
+                    AnimatedVisibility(
+                        visible = isSearchVisible,
+                        enter = fadeIn(animationSpec = tween(260)) + expandVertically(animationSpec = tween(260, easing = FastOutSlowInEasing)),
+                        exit = fadeOut(animationSpec = tween(180)) + shrinkVertically(animationSpec = tween(180, easing = FastOutSlowInEasing))
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedTextField(
+                                value = uiState.searchQuery,
+                                onValueChange = { viewModel.setSearchQuery(it) },
+                                placeholder = {
+                                    Text(
+                                        text = "Search by source name...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = EmeraldTheme.extended.subText.copy(alpha = 0.6f)
+                                    )
+                                },
+                                singleLine = true,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = EmeraldPalette.SoftEmerald,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (uiState.searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Clear,
+                                                contentDescription = "Clear",
+                                                tint = EmeraldTheme.extended.subText,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
                                     }
-                                }
-                            },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = EmeraldTheme.extended.surfaceTier2,
-                                unfocusedContainerColor = EmeraldTheme.extended.surfaceTier2,
-                                focusedBorderColor = EmeraldPalette.SoftEmerald,
-                                unfocusedBorderColor = EmeraldTheme.extended.glassBorder,
-                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = EmeraldTheme.extended.surfaceTier2,
+                                    unfocusedContainerColor = EmeraldTheme.extended.surfaceTier2,
+                                    focusedBorderColor = EmeraldPalette.SoftEmerald,
+                                    unfocusedBorderColor = EmeraldTheme.extended.glassBorder,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -388,6 +402,7 @@ fun EntriesScreen(
                             entry = entry,
                             currencySymbol = uiState.userProfile.currencySymbol,
                             currencyCode = uiState.userProfile.currencyCode,
+                            modifier = Modifier.animateItem(),
                             onClick = {
                                 viewModel.openEditEntryDialog(entry)
                             }
@@ -406,13 +421,26 @@ private fun FilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.surfaceTier2,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "filterChipBg"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "filterChipBorder"
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White else EmeraldTheme.extended.subText,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "filterChipText"
+    )
+
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.surfaceTier2,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
-        ),
+        color = bgColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
@@ -421,7 +449,7 @@ private fun FilterChip(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.White else EmeraldTheme.extended.subText,
+            color = textColor,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
         )
     }

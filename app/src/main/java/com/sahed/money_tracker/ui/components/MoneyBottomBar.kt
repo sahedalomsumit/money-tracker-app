@@ -1,6 +1,15 @@
 package com.sahed.money_tracker.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,12 +56,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 
@@ -73,6 +84,18 @@ fun MoneyBottomBar(
 
     val barColor = EmeraldTheme.extended.surfaceTier1
     val borderColor = EmeraldTheme.extended.glassBorder
+
+    // Gentle breathing ambient pulse for the center FAB aura
+    val infiniteTransition = rememberInfiniteTransition(label = "fabGlowTransition")
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.65f,
+        targetValue = 0.95f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "fabGlowPulse"
+    )
 
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -171,8 +194,6 @@ fun MoneyBottomBar(
         }
 
         // 2. Floating "+" Action Button with radiant ambient glow, nestled in the cradle cutout
-        // Uses layout { ... layout(placeable.width, 0) } so this floating element reports 0 height
-        // to parent Box, ensuring it does NOT expand bottomBar height or push screen content up.
         val glowSize = 76.dp
         Box(
             modifier = Modifier
@@ -187,17 +208,17 @@ fun MoneyBottomBar(
                 .size(glowSize),
             contentAlignment = Alignment.Center
         ) {
-            // Radiant ambient glow ring
+            // Radiant breathing ambient glow ring
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .drawBehind {
                         drawCircle(
                             brush = Brush.radialGradient(
-                                0.0f to Color(0xFF3DBFA0).copy(alpha = 0.85f),
-                                0.40f to Color(0xFF3DBFA0).copy(alpha = 0.65f),
-                                0.55f to Color(0xFF2E9C7E).copy(alpha = 0.45f),
-                                0.80f to Color(0xFF2E9C7E).copy(alpha = 0.15f),
+                                0.0f to Color(0xFF3DBFA0).copy(alpha = glowPulse),
+                                0.40f to Color(0xFF3DBFA0).copy(alpha = glowPulse * 0.75f),
+                                0.55f to Color(0xFF2E9C7E).copy(alpha = glowPulse * 0.50f),
+                                0.80f to Color(0xFF2E9C7E).copy(alpha = glowPulse * 0.18f),
                                 1.0f to Color.Transparent
                             ),
                             radius = size.minDimension / 2f
@@ -206,12 +227,16 @@ fun MoneyBottomBar(
             )
 
             Surface(
-                onClick = onOpenAddEntry,
                 shape = CircleShape,
                 color = EmeraldPalette.SoftEmerald,
                 contentColor = Color.White,
                 shadowElevation = 10.dp,
-                modifier = Modifier.size(fabSize)
+                modifier = Modifier
+                    .size(fabSize)
+                    .bouncyClickable(
+                        pressedScale = 0.90f,
+                        onClick = onOpenAddEntry
+                    )
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -286,12 +311,23 @@ private fun NavPillItem(
 ) {
     val indicatorColor by animateColorAsState(
         targetValue = if (selected) EmeraldPalette.SoftEmerald.copy(alpha = 0.22f) else Color.Transparent,
+        animationSpec = tween(240, easing = FastOutSlowInEasing),
         label = "navPillBg"
     )
 
     val contentColor by animateColorAsState(
         targetValue = if (selected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.subText,
+        animationSpec = tween(240, easing = FastOutSlowInEasing),
         label = "navPillContent"
+    )
+
+    val pillScale by animateFloatAsState(
+        targetValue = if (selected) 1.08f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "navPillScale"
     )
 
     Column(
@@ -311,6 +347,10 @@ private fun NavPillItem(
             modifier = Modifier
                 .width(48.dp)
                 .height(28.dp)
+                .graphicsLayer {
+                    scaleX = pillScale
+                    scaleY = pillScale
+                }
                 .background(
                     color = indicatorColor,
                     shape = RoundedCornerShape(14.dp)

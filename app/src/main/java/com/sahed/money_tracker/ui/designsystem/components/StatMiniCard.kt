@@ -1,5 +1,8 @@
 package com.sahed.money_tracker.ui.designsystem.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +14,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -27,6 +31,12 @@ fun EmeraldStatMiniCard(
     subtitle: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val animatedPercent by animateFloatAsState(
+        targetValue = percent.coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        label = "statMiniProgressAnim"
+    )
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
@@ -54,7 +64,7 @@ fun EmeraldStatMiniCard(
         }
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
-            progress = { percent.coerceIn(0f, 1f) },
+            progress = { animatedPercent },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(5.dp)

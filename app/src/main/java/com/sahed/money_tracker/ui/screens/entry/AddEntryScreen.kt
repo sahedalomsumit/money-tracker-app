@@ -1,6 +1,13 @@
 package com.sahed.money_tracker.ui.screens.entry
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -781,12 +788,21 @@ private fun LivePreviewChip(
                 )
             }
             Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "$symbol ${String.format(java.util.Locale.US, "%,.2f", amount)}",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            AnimatedContent(
+                targetState = amount,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(180)) + slideInVertically(animationSpec = tween(180)) { height -> height / 3 })
+                        .togetherWith(fadeOut(animationSpec = tween(150)) + slideOutVertically(animationSpec = tween(150)) { height -> -height / 3 })
+                },
+                label = "livePreviewChipAmountAnim"
+            ) { targetAmount ->
+                Text(
+                    text = "$symbol ${String.format(java.util.Locale.US, "%,.2f", targetAmount)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }

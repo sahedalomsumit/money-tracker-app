@@ -1,5 +1,11 @@
 package com.sahed.money_tracker.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -177,7 +183,21 @@ fun AppNavGraph(
                 NavHost(
                     navController = navController,
                     startDestination = startDestination,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    enterTransition = {
+                        fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing)) +
+                                scaleIn(initialScale = 0.985f, animationSpec = tween(280, easing = FastOutSlowInEasing))
+                    },
+                    exitTransition = {
+                        fadeOut(animationSpec = tween(200, easing = FastOutSlowInEasing))
+                    },
+                    popEnterTransition = {
+                        fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing)) +
+                                scaleIn(initialScale = 0.985f, animationSpec = tween(280, easing = FastOutSlowInEasing))
+                    },
+                    popExitTransition = {
+                        fadeOut(animationSpec = tween(200, easing = FastOutSlowInEasing))
+                    }
                 ) {
                     composable(AppRoutes.LOGIN) {
                         LoginScreen(
@@ -242,7 +262,33 @@ fun AppNavGraph(
                         )
                     }
 
-                    composable(AppRoutes.MANAGE_SOURCES) {
+                    composable(
+                        route = AppRoutes.MANAGE_SOURCES,
+                        enterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                animationSpec = tween(320, easing = FastOutSlowInEasing)
+                            ) + fadeIn(animationSpec = tween(280))
+                        },
+                        exitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                animationSpec = tween(280, easing = FastOutSlowInEasing)
+                            ) + fadeOut(animationSpec = tween(240))
+                        },
+                        popEnterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                animationSpec = tween(320, easing = FastOutSlowInEasing)
+                            ) + fadeIn(animationSpec = tween(280))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                animationSpec = tween(280, easing = FastOutSlowInEasing)
+                            ) + fadeOut(animationSpec = tween(240))
+                        }
+                    ) {
                         val manageSourcesViewModel: ManageSourcesViewModel = viewModel()
                         ManageSourcesScreen(
                             viewModel = manageSourcesViewModel,

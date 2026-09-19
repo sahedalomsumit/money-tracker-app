@@ -59,7 +59,7 @@ fun EmeraldGlassCard(
             .then(bgModifier)
             .border(width = 1.2.dp, color = borderColor, shape = shape)
             .then(
-                if (onClick != null) Modifier.clickable { onClick() } else Modifier
+                if (onClick != null) Modifier.bouncyClickable(pressedScale = 0.98f, onClick = onClick) else Modifier
             ),
         content = content
     )
