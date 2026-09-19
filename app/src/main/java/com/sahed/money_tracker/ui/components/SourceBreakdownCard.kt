@@ -47,8 +47,10 @@ import androidx.compose.ui.unit.dp
 import com.sahed.money_tracker.data.model.IncomeEntry
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
+import androidx.compose.runtime.Immutable
 import com.sahed.money_tracker.util.CurrencyHelper
 
+@Immutable
 data class MainSourceSummary(
     val mainSourceName: String,
     val totalAmount: Double,

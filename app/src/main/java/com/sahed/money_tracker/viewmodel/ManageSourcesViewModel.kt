@@ -6,6 +6,7 @@ import com.sahed.money_tracker.data.model.MainSource
 import com.sahed.money_tracker.data.model.SubSource
 import com.sahed.money_tracker.data.repository.AuthRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class ManageSourcesUiState(
     val mainSources: List<MainSource> = emptyList(),
     val selectedMainSource: MainSource? = null,

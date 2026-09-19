@@ -50,7 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -94,7 +94,7 @@ fun AddEntryScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var monthDropdownExpanded by remember { mutableStateOf(false) }
     var yearDropdownExpanded by remember { mutableStateOf(false) }

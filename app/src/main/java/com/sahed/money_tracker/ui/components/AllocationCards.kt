@@ -53,6 +53,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -85,6 +86,7 @@ import com.sahed.money_tracker.ui.theme.SavingColor
 import com.sahed.money_tracker.util.CurrencyHelper
 import com.sahed.money_tracker.util.DateUtils
 
+@Immutable
 data class AllocationCategoryItem(
     val key: String,
     val label: String,
@@ -382,6 +384,10 @@ private fun WaterWaveBackground(
         label = "wavePhase2"
     )
 
+    val backWavePath = remember { Path() }
+    val frontWavePath = remember { Path() }
+    val crestPath = remember { Path() }
+
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
@@ -395,20 +401,20 @@ private fun WaterWaveBackground(
 
         // 1. Secondary back wave (lighter alpha for 3D liquid depth)
         if (amplitude > 0.5f) {
-            val backWavePath = Path().apply {
-                moveTo(0f, h)
-                val startY = baseY + (amplitude * 0.7f * sin(wavePhase2))
-                lineTo(0f, startY)
-                val step = 5f
-                var x = 0f
-                while (x <= w) {
-                    val y = baseY + (amplitude * 0.7f * sin((2 * Math.PI * x / (w * 0.85f)).toFloat() + wavePhase2))
-                    lineTo(x, y)
-                    x += step
-                }
-                lineTo(w, h)
-                close()
+            backWavePath.reset()
+            backWavePath.moveTo(0f, h)
+            val startY = baseY + (amplitude * 0.7f * sin(wavePhase2))
+            backWavePath.lineTo(0f, startY)
+            val step = 10f
+            var x = 0f
+            while (x <= w) {
+                val y = baseY + (amplitude * 0.7f * sin((2 * Math.PI * x / (w * 0.85f)).toFloat() + wavePhase2))
+                backWavePath.lineTo(x, y)
+                x += step
             }
+            backWavePath.lineTo(w, h)
+            backWavePath.close()
+
             drawPath(
                 path = backWavePath,
                 brush = Brush.verticalGradient(
@@ -423,20 +429,19 @@ private fun WaterWaveBackground(
         }
 
         // 2. Primary front wave (richer alpha)
-        val frontWavePath = Path().apply {
-            moveTo(0f, h)
-            val startY = baseY + (amplitude * sin(wavePhase1))
-            lineTo(0f, startY)
-            val step = 5f
-            var x = 0f
-            while (x <= w) {
-                val y = baseY + (amplitude * sin((2 * Math.PI * x / w).toFloat() + wavePhase1))
-                lineTo(x, y)
-                x += step
-            }
-            lineTo(w, h)
-            close()
+        frontWavePath.reset()
+        frontWavePath.moveTo(0f, h)
+        val startY = baseY + (amplitude * sin(wavePhase1))
+        frontWavePath.lineTo(0f, startY)
+        val step = 10f
+        var x = 0f
+        while (x <= w) {
+            val y = baseY + (amplitude * sin((2 * Math.PI * x / w).toFloat() + wavePhase1))
+            frontWavePath.lineTo(x, y)
+            x += step
         }
+        frontWavePath.lineTo(w, h)
+        frontWavePath.close()
 
         drawPath(
             path = frontWavePath,
@@ -452,16 +457,15 @@ private fun WaterWaveBackground(
 
         // 3. Subtle crest highlight along the front wave edge
         if (amplitude > 0.5f) {
-            val crestPath = Path().apply {
-                val startY = baseY + (amplitude * sin(wavePhase1))
-                moveTo(0f, startY)
-                val step = 5f
-                var x = 0f
-                while (x <= w) {
-                    val y = baseY + (amplitude * sin((2 * Math.PI * x / w).toFloat() + wavePhase1))
-                    lineTo(x, y)
-                    x += step
-                }
+            crestPath.reset()
+            val startY = baseY + (amplitude * sin(wavePhase1))
+            crestPath.moveTo(0f, startY)
+            val step = 10f
+            var x = 0f
+            while (x <= w) {
+                val y = baseY + (amplitude * sin((2 * Math.PI * x / w).toFloat() + wavePhase1))
+                crestPath.lineTo(x, y)
+                x += step
             }
             drawPath(
                 path = crestPath,

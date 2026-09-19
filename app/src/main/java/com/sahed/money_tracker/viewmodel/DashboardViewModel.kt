@@ -15,6 +15,7 @@ import com.sahed.money_tracker.data.repository.EntryRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
 import com.sahed.money_tracker.util.DateUtils
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class DashboardUiState(
     val selectedYear: Int = DateUtils.getCurrentYear(),
     val availableYears: List<Int> = DateUtils.getAvailableYears(),
@@ -156,11 +158,16 @@ class DashboardViewModel @JvmOverloads constructor(
         entriesJob = viewModelScope.launch {
             try {
                 entryRepository.getEntriesForYearFlow(uid, year).collectLatest { yearEntries ->
-                    // Calculate monthly totals 1..12
-                    val totals = (1..12).associateWith { month ->
-                        yearEntries.filter { it.month == month }.sumOf { it.netSalary }
+                    // Calculate monthly totals 1..12 in a single O(N) pass without intermediate list allocations
+                    val monthlyTotalsArray = DoubleArray(13)
+                    var totalIncome = 0.0
+                    for (entry in yearEntries) {
+                        if (entry.month in 1..12) {
+                            monthlyTotalsArray[entry.month] += entry.netSalary
+                        }
+                        totalIncome += entry.netSalary
                     }
-                    val totalIncome = yearEntries.sumOf { it.netSalary }
+                    val totals = (1..12).associateWith { monthlyTotalsArray[it] }
 
                     _uiState.update {
                         it.copy(

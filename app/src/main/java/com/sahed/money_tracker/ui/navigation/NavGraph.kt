@@ -19,7 +19,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,7 +73,7 @@ fun AppNavGraph(
     authViewModel: AuthViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val authState by authViewModel.uiState.collectAsState()
+    val authState by authViewModel.uiState.collectAsStateWithLifecycle()
 
     // Render smooth loading screen while checking initial session
     if (authState is AuthUiState.Initial) {

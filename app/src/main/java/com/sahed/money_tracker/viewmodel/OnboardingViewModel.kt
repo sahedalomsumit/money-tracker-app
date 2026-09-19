@@ -7,12 +7,14 @@ import com.sahed.money_tracker.data.repository.AllocationRepository
 import com.sahed.money_tracker.data.repository.AuthRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class OnboardingUiState(
     val googleName: String = "",
     val googleEmail: String = "",

@@ -158,11 +158,17 @@ class SourceRepository {
         batch.commit().await()
     }
 
+    companion object {
+        private val seededUids = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    }
+
     suspend fun seedDefaultSourcesIfMissing(uid: String) {
+        if (seededUids.contains(uid)) return
         val db = firestore ?: return
         val colRef = db.collection("users").document(uid).collection("mainSources")
         try {
             val snapshot = colRef.get().await()
+            seededUids.add(uid)
             if (snapshot.isEmpty) {
                 val defaultMainSources = listOf(
                     "Job",

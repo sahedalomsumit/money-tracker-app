@@ -14,6 +14,7 @@ import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.util.MathExpressionEvaluator
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class AddEntryUiState(
     val month: Int = DateUtils.getCurrentMonth(),
     val year: Int = DateUtils.getCurrentYear(),

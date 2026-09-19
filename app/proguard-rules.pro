@@ -1,7 +1,17 @@
 # Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in C:\Users\sahed\AppData\Local\Android\Sdk/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.kts.
-
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+
+# Keep data models intact for serialization / fromMap / toMap
+-keep class com.sahed.money_tracker.data.model.** { *; }
+
+# Keep ViewModel state models for reflection / Compose stability
+-keep class com.sahed.money_tracker.viewmodel.**UiState { *; }
+-keep class com.sahed.money_tracker.viewmodel.**Summary { *; }
+
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+
+# Firebase & Play Services
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**

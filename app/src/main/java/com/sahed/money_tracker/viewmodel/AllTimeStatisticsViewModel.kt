@@ -10,6 +10,7 @@ import com.sahed.money_tracker.data.repository.AllocationRepository
 import com.sahed.money_tracker.data.repository.AuthRepository
 import com.sahed.money_tracker.data.repository.EntryRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class AllTimeSubSourceSummary(
     val subSourceName: String,
     val totalAmount: Double,
@@ -26,6 +28,7 @@ data class AllTimeSubSourceSummary(
     val entriesCount: Int
 )
 
+@Immutable
 data class AllTimeSourceSummary(
     val mainSourceName: String,
     val totalAmount: Double,
@@ -35,6 +38,7 @@ data class AllTimeSourceSummary(
     val subSources: List<AllTimeSubSourceSummary>
 )
 
+@Immutable
 data class AllTimeStatisticsUiState(
     val allEntries: List<IncomeEntry> = emptyList(),
     val allTimeNetSalary: Double = 0.0,

@@ -53,13 +53,15 @@ fun CurrencyPickerDialog(
 
     val filteredCurrencies = remember(searchQuery) {
         val all = CountriesData.allCurrencies
-        if (searchQuery.isBlank()) {
+        val trimmed = searchQuery.trim()
+        if (trimmed.isEmpty()) {
             all
         } else {
+            val query = trimmed.lowercase()
             all.filter {
-                it.code.contains(searchQuery, ignoreCase = true) ||
-                        it.name.contains(searchQuery, ignoreCase = true) ||
-                        it.symbol.contains(searchQuery, ignoreCase = true)
+                it.code.lowercase().contains(query) ||
+                        it.name.lowercase().contains(query) ||
+                        it.symbol.lowercase().contains(query)
             }
         }
     }
@@ -127,7 +129,7 @@ fun CurrencyPickerDialog(
                         .fillMaxWidth()
                         .heightIn(max = 380.dp)
                 ) {
-                    items(filteredCurrencies, key = { it.code }) { currency ->
+                    items(filteredCurrencies, key = { "${it.code}_${it.name}" }) { currency ->
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()

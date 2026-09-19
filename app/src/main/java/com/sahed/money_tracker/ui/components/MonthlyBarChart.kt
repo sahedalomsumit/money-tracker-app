@@ -182,6 +182,20 @@ fun MonthlyBarChart(
         val defaultLabelColorInt = EmeraldTheme.extended.subText.toArgb()
         val selectedLabelColorInt = MaterialTheme.colorScheme.onSurface.toArgb()
 
+        val yAxisTextPaint = remember {
+            android.graphics.Paint().apply {
+                textSize = 24f
+                isAntiAlias = true
+            }
+        }
+        val monthLabelPaint = remember {
+            android.graphics.Paint().apply {
+                textSize = 26f
+                textAlign = android.graphics.Paint.Align.CENTER
+                isAntiAlias = true
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -215,11 +229,7 @@ fun MonthlyBarChart(
 
                 // Draw horizontal guide lines (3 steps: 0, 50%, 100%)
                 val steps = 3
-                val textPaint = android.graphics.Paint().apply {
-                    color = defaultLabelColorInt
-                    textSize = 24f
-                    isAntiAlias = true
-                }
+                yAxisTextPaint.color = defaultLabelColorInt
 
                 for (i in 0..steps) {
                     val ratio = i.toFloat() / steps
@@ -238,7 +248,7 @@ fun MonthlyBarChart(
                     // Y-axis compact label
                     drawIntoCanvas { canvas ->
                         val label = CurrencyHelper.formatCompact(value, currencySymbol)
-                        canvas.nativeCanvas.drawText(label, 0f, y + 8f, textPaint)
+                        canvas.nativeCanvas.drawText(label, 0f, y + 8f, yAxisTextPaint)
                     }
                 }
 
@@ -271,18 +281,13 @@ fun MonthlyBarChart(
 
                     // Month label at bottom with high-contrast paint
                     drawIntoCanvas { canvas ->
-                        val labelPaint = android.graphics.Paint().apply {
-                            color = if (month == selectedMonth) selectedLabelColorInt else defaultLabelColorInt
-                            textSize = 26f
-                            textAlign = android.graphics.Paint.Align.CENTER
-                            isAntiAlias = true
-                            isFakeBoldText = (month == selectedMonth)
-                        }
+                        monthLabelPaint.color = if (month == selectedMonth) selectedLabelColorInt else defaultLabelColorInt
+                        monthLabelPaint.isFakeBoldText = (month == selectedMonth)
                         canvas.nativeCanvas.drawText(
                             DateUtils.getMonthShortName(month),
                             barX + barWidth / 2f,
                             size.height - 10f,
-                            labelPaint
+                            monthLabelPaint
                         )
                     }
                 }

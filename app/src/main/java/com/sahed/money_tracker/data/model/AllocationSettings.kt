@@ -1,5 +1,8 @@
 package com.sahed.money_tracker.data.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class AllocationSettings(
     val savingPercent: Double = 30.0,
     val savingLabel: String = "Saving",

@@ -12,6 +12,7 @@ import com.sahed.money_tracker.data.repository.EntryRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
 import com.sahed.money_tracker.util.DateUtils
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +27,7 @@ enum class EntrySortOrder(val label: String) {
     DATE_ASC("Oldest First")
 }
 
+@Immutable
 data class EntriesUiState(
     val allEntries: List<IncomeEntry> = emptyList(),
     val filteredEntries: List<IncomeEntry> = emptyList(),
@@ -168,12 +170,14 @@ class EntriesViewModel @JvmOverloads constructor(
         searchQuery: String,
         sortOrder: EntrySortOrder
     ): List<IncomeEntry> {
+        val isSearchBlank = searchQuery.isBlank()
+        val query = if (isSearchBlank) "" else searchQuery.trim().lowercase()
+
         val filtered = entries.filter { entry ->
             val matchesYear = yearFilter == null || entry.year == yearFilter
-            val matchesSearch = if (searchQuery.isBlank()) {
+            val matchesSearch = if (isSearchBlank) {
                 true
             } else {
-                val query = searchQuery.trim().lowercase()
                 entry.mainSourceName.lowercase().contains(query) ||
                         (entry.subSourceName?.lowercase()?.contains(query) == true)
             }

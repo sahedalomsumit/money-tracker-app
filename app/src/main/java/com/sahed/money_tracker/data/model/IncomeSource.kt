@@ -1,5 +1,8 @@
 package com.sahed.money_tracker.data.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class MainSource(
     val id: String = "",
     val name: String = "",
@@ -23,6 +26,7 @@ data class MainSource(
     }
 }
 
+@Immutable
 data class SubSource(
     val id: String = "",
     val name: String = "",

@@ -1,5 +1,8 @@
 package com.sahed.money_tracker.data.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class UserProfile(
     val name: String = "",
     val email: String = "",
