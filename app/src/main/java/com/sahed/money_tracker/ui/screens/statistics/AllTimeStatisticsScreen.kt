@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahed.money_tracker.ui.components.AllocationCategoryCard
 import com.sahed.money_tracker.ui.components.AllocationCategoryItem
+import com.sahed.money_tracker.ui.components.SourceBreakdownCard
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldGlassCard
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldHeroBanner
 import com.sahed.money_tracker.ui.designsystem.theme.BottomSheetShape
@@ -129,6 +131,7 @@ fun AllTimeStatisticsScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Surface(
                 color = MaterialTheme.colorScheme.background,
@@ -170,7 +173,7 @@ fun AllTimeStatisticsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 90.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Card 1: All Time Net Salary (Top Hero Banner)
@@ -365,61 +368,15 @@ fun AllTimeStatisticsScreen(
                     }
                 }
 
-                // Section 5: Lifetime Top Income Sources & Sub-Sources
-                if (uiState.allTimeSources.isNotEmpty()) {
+                // Section 5: Lifetime Top Income Sources & Sub-Sources (Same as Dashboard)
+                if (uiState.allEntries.isNotEmpty()) {
                     item(key = "all_time_sources_card") {
-                        EmeraldGlassCard(
-                            cornerRadius = 18.dp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(34.dp)
-                                            .background(EmeraldPalette.SoftEmerald.copy(alpha = 0.15f), CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.PieChart,
-                                            contentDescription = null,
-                                            tint = EmeraldPalette.SoftEmerald,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = "All Time Income Sources",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "${uiState.allTimeSources.size} main source${if (uiState.allTimeSources.size != 1) "s" else ""} • ${uiState.totalSubSourcesCount} sub-source${if (uiState.totalSubSourcesCount != 1) "s" else ""}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = EmeraldTheme.extended.subText
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    uiState.allTimeSources.forEachIndexed { index, source ->
-                                        AllTimeSourceItem(
-                                            index = index,
-                                            source = source,
-                                            currencySymbol = uiState.userProfile.currencySymbol,
-                                            currencyCode = uiState.userProfile.currencyCode
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        SourceBreakdownCard(
+                            entries = uiState.allEntries,
+                            totalYearIncome = uiState.allTimeNetSalary,
+                            currencySymbol = uiState.userProfile.currencySymbol,
+                            currencyCode = uiState.userProfile.currencyCode
+                        )
                     }
                 }
             }

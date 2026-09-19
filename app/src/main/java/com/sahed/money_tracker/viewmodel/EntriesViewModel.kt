@@ -11,6 +11,7 @@ import com.sahed.money_tracker.data.repository.AuthRepository
 import com.sahed.money_tracker.data.repository.EntryRepository
 import com.sahed.money_tracker.data.repository.ProfileRepository
 import com.sahed.money_tracker.data.repository.SourceRepository
+import com.sahed.money_tracker.util.DateUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,11 +19,19 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class EntrySortOrder(val label: String) {
+    AMOUNT_DESC("Highest to Lowest"),
+    AMOUNT_ASC("Lowest to Highest"),
+    DATE_DESC("Newest First"),
+    DATE_ASC("Oldest First")
+}
+
 data class EntriesUiState(
     val allEntries: List<IncomeEntry> = emptyList(),
     val filteredEntries: List<IncomeEntry> = emptyList(),
     val availableYears: List<Int> = emptyList(),
-    val selectedYearFilter: Int? = null, // null means "All"
+    val selectedYearFilter: Int? = DateUtils.getCurrentYear(), // Current year selected by default
+    val sortOrder: EntrySortOrder = EntrySortOrder.DATE_DESC,
     val searchQuery: String = "",
     val totalFilteredIncome: Double = 0.0,
     val totalAllIncome: Double = 0.0,
@@ -79,20 +88,21 @@ class EntriesViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             try {
                 entryRepository.getAllEntriesFlow(uid).collectLatest { entries ->
-                    val sorted = entries.sortedWith(
-                        compareByDescending<IncomeEntry> { it.year }
-                            .thenByDescending { it.month }
-                            .thenByDescending { it.createdAt }
-                    )
-                    val years = sorted.map { it.year }.distinct().sortedDescending()
-                    val totalAll = sorted.sumOf { it.netSalary }
+                    val currentYear = DateUtils.getCurrentYear()
+                    val distinctYears = (entries.map { it.year } + currentYear).distinct().sortedDescending()
+                    val totalAll = entries.sumOf { it.netSalary }
 
                     _uiState.update { current ->
-                        val filtered = filterEntries(sorted, current.selectedYearFilter, current.searchQuery)
+                        val filtered = filterAndSortEntries(
+                            entries = entries,
+                            yearFilter = current.selectedYearFilter,
+                            searchQuery = current.searchQuery,
+                            sortOrder = current.sortOrder
+                        )
                         current.copy(
-                            allEntries = sorted,
+                            allEntries = entries,
                             filteredEntries = filtered,
-                            availableYears = years,
+                            availableYears = distinctYears,
                             totalAllIncome = totalAll,
                             totalFilteredIncome = filtered.sumOf { it.netSalary },
                             isLoading = false
@@ -107,7 +117,12 @@ class EntriesViewModel @JvmOverloads constructor(
 
     fun setSelectedYearFilter(year: Int?) {
         _uiState.update { current ->
-            val filtered = filterEntries(current.allEntries, year, current.searchQuery)
+            val filtered = filterAndSortEntries(
+                entries = current.allEntries,
+                yearFilter = year,
+                searchQuery = current.searchQuery,
+                sortOrder = current.sortOrder
+            )
             current.copy(
                 selectedYearFilter = year,
                 filteredEntries = filtered,
@@ -116,9 +131,29 @@ class EntriesViewModel @JvmOverloads constructor(
         }
     }
 
+    fun setSortOrder(order: EntrySortOrder) {
+        _uiState.update { current ->
+            val filtered = filterAndSortEntries(
+                entries = current.allEntries,
+                yearFilter = current.selectedYearFilter,
+                searchQuery = current.searchQuery,
+                sortOrder = order
+            )
+            current.copy(
+                sortOrder = order,
+                filteredEntries = filtered
+            )
+        }
+    }
+
     fun setSearchQuery(query: String) {
         _uiState.update { current ->
-            val filtered = filterEntries(current.allEntries, current.selectedYearFilter, query)
+            val filtered = filterAndSortEntries(
+                entries = current.allEntries,
+                yearFilter = current.selectedYearFilter,
+                searchQuery = query,
+                sortOrder = current.sortOrder
+            )
             current.copy(
                 searchQuery = query,
                 filteredEntries = filtered,
@@ -127,12 +162,13 @@ class EntriesViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun filterEntries(
+    private fun filterAndSortEntries(
         entries: List<IncomeEntry>,
         yearFilter: Int?,
-        searchQuery: String
+        searchQuery: String,
+        sortOrder: EntrySortOrder
     ): List<IncomeEntry> {
-        return entries.filter { entry ->
+        val filtered = entries.filter { entry ->
             val matchesYear = yearFilter == null || entry.year == yearFilter
             val matchesSearch = if (searchQuery.isBlank()) {
                 true
@@ -142,6 +178,31 @@ class EntriesViewModel @JvmOverloads constructor(
                         (entry.subSourceName?.lowercase()?.contains(query) == true)
             }
             matchesYear && matchesSearch
+        }
+
+        return when (sortOrder) {
+            EntrySortOrder.AMOUNT_DESC -> filtered.sortedWith(
+                compareByDescending<IncomeEntry> { it.netSalary }
+                    .thenByDescending { it.year }
+                    .thenByDescending { it.month }
+                    .thenByDescending { it.createdAt }
+            )
+            EntrySortOrder.AMOUNT_ASC -> filtered.sortedWith(
+                compareBy<IncomeEntry> { it.netSalary }
+                    .thenByDescending { it.year }
+                    .thenByDescending { it.month }
+                    .thenByDescending { it.createdAt }
+            )
+            EntrySortOrder.DATE_DESC -> filtered.sortedWith(
+                compareByDescending<IncomeEntry> { it.year }
+                    .thenByDescending { it.month }
+                    .thenByDescending { it.createdAt }
+            )
+            EntrySortOrder.DATE_ASC -> filtered.sortedWith(
+                compareBy<IncomeEntry> { it.year }
+                    .thenBy { it.month }
+                    .thenBy { it.createdAt }
+            )
         }
     }
 

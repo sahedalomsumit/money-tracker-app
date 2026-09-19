@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
@@ -56,6 +59,7 @@ import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.util.CurrencyHelper
 import com.sahed.money_tracker.viewmodel.EntriesViewModel
+import com.sahed.money_tracker.viewmodel.EntrySortOrder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +69,17 @@ fun EntriesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var isSearchVisible by remember { mutableStateOf(false) }
+    var showSortDialog by remember { mutableStateOf(false) }
+
+    if (showSortDialog) {
+        com.sahed.money_tracker.ui.components.SortSelectionDialog(
+            selectedSortOrder = uiState.sortOrder,
+            onSortSelected = { order ->
+                viewModel.setSortOrder(order)
+            },
+            onDismissRequest = { showSortDialog = false }
+        )
+    }
 
     // Dialog for editing or deleting entry
     if (uiState.selectedEntryForEdit != null) {
@@ -89,6 +104,7 @@ fun EntriesScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Surface(
                 color = MaterialTheme.colorScheme.background,
@@ -213,11 +229,11 @@ fun EntriesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 90.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 1. Summary Card
-                item(key = "entries_summary_card") {
+                // 1. Filter & Sort Header Card (Popup Sort Selection)
+                item(key = "entries_controls_card") {
                     EmeraldGlassCard(
                         cornerRadius = 18.dp,
                         modifier = Modifier.fillMaxWidth()
@@ -225,54 +241,76 @@ fun EntriesScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(18.dp),
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                Text(
-                                    text = if (uiState.selectedYearFilter != null) "Income • ${uiState.selectedYearFilter}" else "Total Logged Income",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = EmeraldTheme.extended.subText
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = CurrencyHelper.format(
-                                        uiState.totalFilteredIncome,
-                                        uiState.userProfile.currencySymbol,
-                                        uiState.userProfile.currencyCode
-                                    ),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = EmeraldPalette.SoftEmerald
-                                )
+                            // Entry count & year badge
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(EmeraldPalette.SoftEmerald.copy(alpha = 0.15f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = null,
+                                        tint = EmeraldPalette.SoftEmerald,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "${uiState.filteredEntries.size} entries",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = if (uiState.selectedYearFilter != null) "Year ${uiState.selectedYearFilter}" else "All Years",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = EmeraldTheme.extended.subText
+                                    )
+                                }
                             }
 
-                            // Entry count badge
+                            // Interactive Sort Button (opens SortSelectionDialog popup)
                             Surface(
                                 shape = RoundedCornerShape(12.dp),
                                 color = EmeraldTheme.extended.surfaceTier2,
                                 border = androidx.compose.foundation.BorderStroke(
                                     1.dp,
                                     EmeraldTheme.extended.glassBorder
-                                )
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { showSortDialog = true }
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.FilterList,
-                                        contentDescription = null,
+                                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                                        contentDescription = "Sort Options",
                                         tint = EmeraldPalette.SoftEmerald,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "${uiState.filteredEntries.size} entries",
+                                        text = uiState.sortOrder.label,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = EmeraldPalette.SoftEmerald
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Open Sort Menu",
+                                        tint = EmeraldTheme.extended.subText,
+                                        modifier = Modifier.size(16.dp)
                                     )
                                 }
                             }

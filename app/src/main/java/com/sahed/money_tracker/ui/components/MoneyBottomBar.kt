@@ -24,10 +24,10 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,6 @@ fun MoneyBottomBar(
     onOpenAddEntry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val topProtrusion = 26.dp
     val navBarHeight = 66.dp
     val fabSize = 52.dp
     val cutoutRadius = 34.dp
@@ -75,114 +75,129 @@ fun MoneyBottomBar(
     val borderColor = EmeraldTheme.extended.glassBorder
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding(),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
-        // 1. Navbar shape with circular notch cutout
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(topProtrusion + navBarHeight)
-                .drawWithCache {
-                    val topOffsetPx = topProtrusion.toPx()
-                    val cutoutRadiusPx = cutoutRadius.toPx()
-                    val cornerRadiusPx = cornerRadius.toPx()
-
-                    val (bgPath, borderPath) = buildCradlePaths(
-                        size = size,
-                        topOffset = topOffsetPx,
-                        cutoutRadius = cutoutRadiusPx,
-                        cornerRadius = cornerRadiusPx
-                    )
-
-                    onDrawBehind {
-                        // Draw navbar body leaving circular cutout empty
-                        drawPath(path = bgPath, color = barColor)
-                        // Draw subtle top divider line following cradle contour
-                        drawPath(
-                            path = borderPath,
-                            color = borderColor,
-                            style = Stroke(width = 1.dp.toPx())
-                        )
-                    }
-                }
+        // 1. Bottom bar body with cradle cutout + seamless navigation bar fill
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = topProtrusion)
                     .height(navBarHeight)
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .drawWithCache {
+                        val cutoutRadiusPx = cutoutRadius.toPx()
+                        val cornerRadiusPx = cornerRadius.toPx()
+
+                        val (bgPath, borderPath) = buildCradlePaths(
+                            size = size,
+                            cutoutRadius = cutoutRadiusPx,
+                            cornerRadius = cornerRadiusPx
+                        )
+
+                        onDrawBehind {
+                            // Draw navbar body leaving circular cutout empty
+                            drawPath(path = bgPath, color = barColor)
+                            // Draw subtle top divider line following cradle contour
+                            drawPath(
+                                path = borderPath,
+                                color = borderColor,
+                                style = Stroke(width = 1.dp.toPx())
+                            )
+                        }
+                    }
             ) {
-                // 1. Home Tab
-                NavPillItem(
-                    label = "Home",
-                    selected = currentRoute == "dashboard",
-                    activeIcon = Icons.Filled.Home,
-                    inactiveIcon = Icons.Outlined.Home,
-                    onClick = onNavigateToDashboard,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(navBarHeight)
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 1. Dashboard Tab
+                    NavPillItem(
+                        label = "Dashboard",
+                        selected = currentRoute == "dashboard",
+                        activeIcon = Icons.Filled.Dashboard,
+                        inactiveIcon = Icons.Outlined.Dashboard,
+                        onClick = onNavigateToDashboard,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                // 2. Entries Tab
-                NavPillItem(
-                    label = "Entries",
-                    selected = currentRoute == "entries",
-                    activeIcon = Icons.AutoMirrored.Filled.ReceiptLong,
-                    inactiveIcon = Icons.AutoMirrored.Outlined.ReceiptLong,
-                    onClick = onNavigateToEntries,
-                    modifier = Modifier.weight(1f)
-                )
+                    // 2. Entries Tab
+                    NavPillItem(
+                        label = "Entries",
+                        selected = currentRoute == "entries",
+                        activeIcon = Icons.AutoMirrored.Filled.ReceiptLong,
+                        inactiveIcon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                        onClick = onNavigateToEntries,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                // Center cradle gap for floating Add (+) button
-                Spacer(modifier = Modifier.width(cutoutRadius * 2 + 10.dp))
+                    // Center cradle gap for floating Add (+) button
+                    Spacer(modifier = Modifier.width(cutoutRadius * 2 + 10.dp))
 
-                // 3. All Time Statistics Tab
-                NavPillItem(
-                    label = "Stats",
-                    selected = currentRoute == "statistics",
-                    activeIcon = Icons.Filled.BarChart,
-                    inactiveIcon = Icons.Outlined.BarChart,
-                    onClick = onNavigateToStatistics,
-                    modifier = Modifier.weight(1f)
-                )
+                    // 3. All Time Statistics Tab
+                    NavPillItem(
+                        label = "Stats",
+                        selected = currentRoute == "statistics",
+                        activeIcon = Icons.Filled.BarChart,
+                        inactiveIcon = Icons.Outlined.BarChart,
+                        onClick = onNavigateToStatistics,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                // 4. Settings Tab
-                NavPillItem(
-                    label = "Settings",
-                    selected = currentRoute == "settings",
-                    activeIcon = Icons.Filled.Settings,
-                    inactiveIcon = Icons.Outlined.Settings,
-                    onClick = onNavigateToSettings,
-                    modifier = Modifier.weight(1f)
-                )
+                    // 4. Settings Tab
+                    NavPillItem(
+                        label = "Settings",
+                        selected = currentRoute == "settings",
+                        activeIcon = Icons.Filled.Settings,
+                        inactiveIcon = Icons.Outlined.Settings,
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
+
+            // Seamlessly fill system navigation bar area below the navbar
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(barColor)
+                    .navigationBarsPadding()
+            )
         }
 
-        // 2. Floating "+" Action Button with vibrant ambient glow
-        val glowSize = 92.dp
+        // 2. Floating "+" Action Button with radiant ambient glow, nestled in the cradle cutout
+        // Uses layout { ... layout(placeable.width, 0) } so this floating element reports 0 height
+        // to parent Box, ensuring it does NOT expand bottomBar height or push screen content up.
+        val glowSize = 76.dp
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = topProtrusion - (glowSize / 2))
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, 0) {
+                        placeable.place(0, 0)
+                    }
+                }
+                .offset(y = -(glowSize / 2))
                 .size(glowSize),
             contentAlignment = Alignment.Center
         ) {
-            // Luminous ambient glow ring
+            // Radiant ambient glow ring
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .drawBehind {
                         drawCircle(
                             brush = Brush.radialGradient(
-                                0.0f to Color(0xFF3DBFA0).copy(alpha = 0.90f),
-                                0.40f to Color(0xFF3DBFA0).copy(alpha = 0.75f),
-                                0.55f to Color(0xFF2E9C7E).copy(alpha = 0.65f),
-                                0.80f to Color(0xFF2E9C7E).copy(alpha = 0.25f),
+                                0.0f to Color(0xFF3DBFA0).copy(alpha = 0.85f),
+                                0.40f to Color(0xFF3DBFA0).copy(alpha = 0.65f),
+                                0.55f to Color(0xFF2E9C7E).copy(alpha = 0.45f),
+                                0.80f to Color(0xFF2E9C7E).copy(alpha = 0.15f),
                                 1.0f to Color.Transparent
                             ),
                             radius = size.minDimension / 2f
@@ -213,7 +228,6 @@ fun MoneyBottomBar(
 
 private fun buildCradlePaths(
     size: Size,
-    topOffset: Float,
     cutoutRadius: Float,
     cornerRadius: Float
 ): Pair<Path, Path> {
@@ -222,21 +236,21 @@ private fun buildCradlePaths(
     val r = cornerRadius
 
     val borderPath = Path().apply {
-        moveTo(0f, topOffset)
-        lineTo(cx - R - r, topOffset)
+        moveTo(0f, 0f)
+        lineTo(cx - R - r, 0f)
         // Left shoulder curving smoothly into the circular cutout
         cubicTo(
-            cx - R - r * 0.4f, topOffset,
-            cx - R, topOffset + r * 0.15f,
-            cx - R * 0.96f, topOffset + R * 0.28f
+            cx - R - r * 0.4f, 0f,
+            cx - R, r * 0.15f,
+            cx - R * 0.96f, R * 0.28f
         )
         // Circular arc dipping around the lower half of the FAB
         arcTo(
             rect = Rect(
                 left = cx - R,
-                top = topOffset - R,
+                top = -R,
                 right = cx + R,
-                bottom = topOffset + R
+                bottom = R
             ),
             startAngleDegrees = 164f,
             sweepAngleDegrees = -148f,
@@ -244,11 +258,11 @@ private fun buildCradlePaths(
         )
         // Right shoulder curving smoothly back out to the top line
         cubicTo(
-            cx + R, topOffset + r * 0.15f,
-            cx + R + r * 0.4f, topOffset,
-            cx + R + r, topOffset
+            cx + R, r * 0.15f,
+            cx + R + r * 0.4f, 0f,
+            cx + R + r, 0f
         )
-        lineTo(size.width, topOffset)
+        lineTo(size.width, 0f)
     }
 
     val bgPath = Path().apply {

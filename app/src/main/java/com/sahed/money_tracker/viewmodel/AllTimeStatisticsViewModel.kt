@@ -36,6 +36,7 @@ data class AllTimeSourceSummary(
 )
 
 data class AllTimeStatisticsUiState(
+    val allEntries: List<IncomeEntry> = emptyList(),
     val allTimeNetSalary: Double = 0.0,
     val allTimeSavings: Double = 0.0,
     val allTimeInvesting: Double = 0.0,
@@ -146,6 +147,7 @@ class AllTimeStatisticsViewModel @JvmOverloads constructor(
         val avgYearly = if (activeYears > 0) totalNetSalary / activeYears else 0.0
 
         return AllTimeStatisticsUiState(
+            allEntries = entries,
             allTimeNetSalary = totalNetSalary,
             allTimeSavings = savings,
             allTimeInvesting = investing,

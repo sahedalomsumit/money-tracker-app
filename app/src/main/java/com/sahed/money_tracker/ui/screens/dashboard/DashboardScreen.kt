@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,14 +57,26 @@ fun DashboardScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var yearDropdownExpanded by remember { mutableStateOf(false) }
+    var showYearPickerDialog by remember { mutableStateOf(false) }
 
-    // Intercept system back press on home Dashboard to exit the application cleanly
+    // Intercept system back press on Dashboard to exit the application cleanly
     BackHandler {
         (context as? Activity)?.finish()
     }
 
+    if (showYearPickerDialog) {
+        com.sahed.money_tracker.ui.components.YearPickerDialog(
+            selectedYear = uiState.selectedYear,
+            availableYears = uiState.availableYears,
+            onYearSelected = { year ->
+                viewModel.setSelectedYear(year)
+            },
+            onDismissRequest = { showYearPickerDialog = false }
+        )
+    }
+
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Surface(
                 color = MaterialTheme.colorScheme.background,
@@ -78,7 +91,7 @@ fun DashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Home",
+                            text = "Dashboard",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -90,57 +103,34 @@ fun DashboardScreen(
                         )
                     }
 
-                    // Year selector dropdown button (Surface Tier 2)
-                    Box {
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = EmeraldTheme.extended.surfaceTier2,
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                EmeraldTheme.extended.glassBorder
-                            ),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable { yearDropdownExpanded = true }
+                    // Year selector popup button (Surface Tier 2)
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = EmeraldTheme.extended.surfaceTier2,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            EmeraldTheme.extended.glassBorder
+                        ),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { showYearPickerDialog = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = uiState.selectedYear.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = EmeraldPalette.SoftEmerald
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Select Year",
-                                    tint = EmeraldTheme.extended.subText
-                                )
-                            }
-                        }
-
-                        DropdownMenu(
-                            expanded = yearDropdownExpanded,
-                            onDismissRequest = { yearDropdownExpanded = false }
-                        ) {
-                            uiState.availableYears.forEach { year ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = year.toString(),
-                                            fontWeight = if (year == uiState.selectedYear) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (year == uiState.selectedYear) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    },
-                                    onClick = {
-                                        viewModel.setSelectedYear(year)
-                                        yearDropdownExpanded = false
-                                    }
-                                )
-                            }
+                            Text(
+                                text = uiState.selectedYear.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = EmeraldPalette.SoftEmerald
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Select Year",
+                                tint = EmeraldTheme.extended.subText
+                            )
                         }
                     }
                 }
@@ -153,7 +143,7 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 90.dp),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 1. Total Income Card (Emerald Hero Banner)

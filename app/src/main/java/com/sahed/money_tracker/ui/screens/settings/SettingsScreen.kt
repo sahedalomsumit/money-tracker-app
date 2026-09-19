@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Check
@@ -71,20 +73,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sahed.money_tracker.R
 import com.sahed.money_tracker.data.preferences.ThemeMode
 import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldModalBottomSheet
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldOptionRow
+import com.sahed.money_tracker.ui.components.BuiltBySahedFooter
+import com.sahed.money_tracker.ui.components.OtherAppsDialog
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
+import com.sahed.money_tracker.util.AppVersionHelper
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.viewmodel.SettingsUiState
 import com.sahed.money_tracker.viewmodel.SettingsViewModel
@@ -99,10 +106,12 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    val versionName = remember(context) { AppVersionHelper.getVersionName(context) }
 
     var showCurrencyPicker by remember { mutableStateOf(false) }
     var showThemePicker by remember { mutableStateOf(false) }
     var showSignOutConfirm by remember { mutableStateOf(false) }
+    var showOtherAppsDialog by remember { mutableStateOf(false) }
 
     // Allocation Edit Dialog
     var showAllocationDialog by remember { mutableStateOf(false) }
@@ -178,6 +187,12 @@ fun SettingsScreen(
                 viewModel.clearAllocationStatus()
                 showAllocationDialog = false
             }
+        )
+    }
+
+    if (showOtherAppsDialog) {
+        OtherAppsDialog(
+            onDismissRequest = { showOtherAppsDialog = false }
         )
     }
 
@@ -411,46 +426,46 @@ fun SettingsScreen(
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text(
-                        text = "If you benefit from this ad-free app, you may support it for maintenance.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 22.sp
+                Column {
+                    // Other Android Apps row (opens modal popup)
+                    SettingsItem(
+                        icon = Icons.Default.Apps,
+                        title = "Other Android Apps",
+                        subtitle = "By Sahed Alom Sumit",
+                        onClick = { showOtherAppsDialog = true }
                     )
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text(
+                            text = "If you benefit from this ad-free app, you may support it for maintenance.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 22.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
                         Button(
                             onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buy.stripe.com"))
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://donate.stripe.com/7sY9AS57S4XL7F4aqP8AE03"))
                                 context.startActivity(intent)
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF635BFF)),
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .height(44.dp)
                         ) {
-                            Text("Stripe", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bkash.com"))
-                                context.startActivity(intent)
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2136E)),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(44.dp)
-                        ) {
-                            Text("bKash", fontWeight = FontWeight.Bold, color = Color.White)
+                            Icon(
+                                imageVector = Icons.Default.AccountBalanceWallet,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Donate with Stripe", fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -464,7 +479,7 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Version 1.0.0",
+                    text = "Version $versionName",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -474,34 +489,16 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sahedalomsumit.com"))
-                            context.startActivity(intent)
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "Built with ❤️ by Sahed",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = EmeraldPalette.SoftEmerald
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                        contentDescription = null,
-                        tint = EmeraldPalette.SoftEmerald,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
+                Spacer(modifier = Modifier.height(8.dp))
+                BuiltBySahedFooter(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sahedalomsumit.com"))
+                        context.startActivity(intent)
+                    }
+                )
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
