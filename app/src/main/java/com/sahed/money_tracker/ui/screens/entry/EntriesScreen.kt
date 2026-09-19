@@ -27,9 +27,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -153,7 +156,7 @@ fun EntriesScreen(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .clickable {
+                                .bouncyClickable {
                                     isSearchVisible = !isSearchVisible
                                     if (!isSearchVisible) {
                                         viewModel.setSearchQuery("")
@@ -250,7 +253,9 @@ fun EntriesScreen(
                 item(key = "entries_controls_card") {
                     EmeraldGlassCard(
                         cornerRadius = 18.dp,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .gentleEntrance(0)
                     ) {
                         Row(
                             modifier = Modifier
@@ -300,7 +305,7 @@ fun EntriesScreen(
                                 ),
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable { showSortDialog = true }
+                                    .bouncyClickable { showSortDialog = true }
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -338,7 +343,8 @@ fun EntriesScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
+                                .horizontalScroll(rememberScrollState())
+                                .gentleEntrance(1),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             // "All" chip
@@ -365,12 +371,14 @@ fun EntriesScreen(
                     item(key = "empty_entries_state") {
                         EmeraldGlassCard(
                             cornerRadius = 18.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .gentleEntrance(2)
                         ) {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(36.dp),
+                                .fillMaxWidth()
+                                .padding(36.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
@@ -397,12 +405,14 @@ fun EntriesScreen(
                         }
                     }
                 } else {
-                    items(uiState.filteredEntries, key = { it.id }) { entry ->
+                    itemsIndexed(uiState.filteredEntries, key = { _, entry -> entry.id }) { index, entry ->
                         EntryItemCard(
                             entry = entry,
                             currencySymbol = uiState.userProfile.currencySymbol,
                             currencyCode = uiState.userProfile.currencyCode,
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier
+                                .animateItem()
+                                .gentleEntrance(index = (index + 2).coerceAtMost(7)),
                             onClick = {
                                 viewModel.openEditEntryDialog(entry)
                             }
@@ -443,7 +453,7 @@ private fun FilterChip(
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .bouncyClickable(pressedScale = 0.96f, onClick = onClick)
     ) {
         Text(
             text = label,

@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
@@ -79,7 +80,7 @@ fun SortSelectionDialog(
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(EmeraldTheme.extended.surfaceTier3)
-                        .clickable(onClick = onDismissRequest),
+                        .bouncyClickable(pressedScale = 0.92f, onClick = onDismissRequest),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -115,7 +116,7 @@ fun SortSelectionDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .clickable {
+                            .bouncyClickable(pressedScale = 0.98f) {
                                 onSortSelected(order)
                                 onDismissRequest()
                             }

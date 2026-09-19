@@ -16,8 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -321,7 +324,9 @@ fun ManageSourcesScreen(
             // Section 1: Main Sources
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(0),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -347,7 +352,7 @@ fun ManageSourcesScreen(
                 }
             }
 
-            items(uiState.mainSources, key = { it.id }) { mainSource ->
+            itemsIndexed(uiState.mainSources, key = { _, mainSource -> mainSource.id }) { index, mainSource ->
                 val isSelected = uiState.selectedMainSource?.id == mainSource.id
                 val isDragging = draggingMainSourceId == mainSource.id
                 val density = LocalDensity.current
@@ -371,6 +376,7 @@ fun ManageSourcesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateItem()
+                        .gentleEntrance((index + 1).coerceAtMost(6))
                         .zIndex(if (isDragging) 10f else 1f)
                         .graphicsLayer {
                             if (isDragging) {
@@ -380,7 +386,7 @@ fun ManageSourcesScreen(
                             }
                         }
                         .clip(RoundedCornerShape(14.dp))
-                        .clickable { viewModel.selectMainSource(mainSource) }
+                        .bouncyClickable(pressedScale = 0.98f) { viewModel.selectMainSource(mainSource) }
                 ) {
                     Row(
                         modifier = Modifier
@@ -489,7 +495,9 @@ fun ManageSourcesScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(2),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -533,7 +541,9 @@ fun ManageSourcesScreen(
                             1.dp,
                             MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .gentleEntrance(3)
                     ) {
                         Box(
                             modifier = Modifier.padding(24.dp),
@@ -548,7 +558,7 @@ fun ManageSourcesScreen(
                     }
                 }
             } else {
-                items(uiState.subSourcesForSelected, key = { it.id }) { subSource ->
+                itemsIndexed(uiState.subSourcesForSelected, key = { _, subSource -> subSource.id }) { index, subSource ->
                     val isDragging = draggingSubSourceId == subSource.id
                     val density = LocalDensity.current
                     val thresholdPx = with(density) { 50.dp.toPx() }
@@ -563,6 +573,7 @@ fun ManageSourcesScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem()
+                            .gentleEntrance((index + 3).coerceAtMost(8))
                             .zIndex(if (isDragging) 10f else 1f)
                             .graphicsLayer {
                                 if (isDragging) {

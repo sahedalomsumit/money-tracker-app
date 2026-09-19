@@ -25,7 +25,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
@@ -81,7 +86,10 @@ fun YearPickerDialog(
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(EmeraldTheme.extended.surfaceTier3)
-                        .clickable(onClick = onDismissRequest),
+                        .bouncyClickable(
+                            pressedScale = 0.92f,
+                            onClick = onDismissRequest
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -113,25 +121,45 @@ fun YearPickerDialog(
                 ) {
                     availableYears.forEach { year ->
                         val isSelected = year == selectedYear
+                        val targetBg = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.surfaceTier1
+                        val targetBorder = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
+                        val targetText = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+
+                        val animatedBg by animateColorAsState(
+                            targetValue = targetBg,
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            label = "year_bg_$year"
+                        )
+                        val animatedBorder by animateColorAsState(
+                            targetValue = targetBorder,
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            label = "year_border_$year"
+                        )
+                        val animatedText by animateColorAsState(
+                            targetValue = targetText,
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            label = "year_text_$year"
+                        )
+
                         Surface(
                             shape = RoundedCornerShape(14.dp),
-                            color = if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.surfaceTier1,
-                            border = BorderStroke(
-                                1.dp,
-                                if (isSelected) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
-                            ),
+                            color = animatedBg,
+                            border = BorderStroke(1.dp, animatedBorder),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(14.dp))
-                                .clickable {
-                                    onYearSelected(year)
-                                    onDismissRequest()
-                                }
+                                .bouncyClickable(
+                                    pressedScale = 0.94f,
+                                    onClick = {
+                                        onYearSelected(year)
+                                        onDismissRequest()
+                                    }
+                                )
                         ) {
                             Text(
                                 text = year.toString(),
                                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp),
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                color = animatedText,
                                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)
                             )
                         }

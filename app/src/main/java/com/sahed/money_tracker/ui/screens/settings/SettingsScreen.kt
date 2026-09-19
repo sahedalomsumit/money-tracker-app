@@ -89,6 +89,8 @@ import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldAlertDialog
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldModalBottomSheet
 import com.sahed.money_tracker.ui.designsystem.components.EmeraldOptionRow
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import com.sahed.money_tracker.ui.components.BuiltBySahedFooter
 import com.sahed.money_tracker.ui.components.OtherAppsDialog
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
@@ -213,7 +215,8 @@ fun SettingsScreen(
                 text = "Settings",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.gentleEntrance(0)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -226,7 +229,9 @@ fun SettingsScreen(
                     1.dp,
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(1)
             ) {
                 Row(
                     modifier = Modifier.padding(18.dp),
@@ -279,7 +284,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // 2. App Settings Section
-            SectionHeader(title = "App Settings")
+            SectionHeader(title = "App Settings", modifier = Modifier.gentleEntrance(2))
 
             Surface(
                 shape = RoundedCornerShape(20.dp),
@@ -288,7 +293,9 @@ fun SettingsScreen(
                     1.dp,
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(2)
             ) {
                 Column {
                     val currencyOption = remember(uiState.userProfile.currencyCode) {
@@ -395,7 +402,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // 3. Account Section
-            SectionHeader(title = "Account")
+            SectionHeader(title = "Account", modifier = Modifier.gentleEntrance(3))
 
             Surface(
                 shape = RoundedCornerShape(20.dp),
@@ -404,7 +411,9 @@ fun SettingsScreen(
                     1.dp,
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(3)
             ) {
                 SettingsItem(
                     icon = Icons.AutoMirrored.Filled.Logout,
@@ -418,7 +427,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // 4. Support Section (Optional App-support Donation)
-            SectionHeader(title = "Support Money Tracker App")
+            SectionHeader(title = "Support Money Tracker App", modifier = Modifier.gentleEntrance(4))
 
             Surface(
                 shape = RoundedCornerShape(20.dp),
@@ -427,7 +436,9 @@ fun SettingsScreen(
                     1.dp,
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(4)
             ) {
                 Column {
                     // Other Android Apps row (opens modal popup)
@@ -478,7 +489,9 @@ fun SettingsScreen(
 
             // 5. Footer
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(5),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -507,13 +520,13 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
         color = EmeraldPalette.SoftEmerald,
-        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        modifier = modifier.padding(start = 4.dp, bottom = 8.dp)
     )
 }
 
@@ -529,7 +542,7 @@ private fun SettingsItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .bouncyClickable(pressedScale = 0.98f, onClick = onClick)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -43,6 +43,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahed.money_tracker.R
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import com.sahed.money_tracker.ui.designsystem.theme.DialogShape
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
@@ -91,7 +93,7 @@ fun OtherAppsDialog(
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(EmeraldTheme.extended.surfaceTier3)
-                        .clickable(onClick = onDismissRequest),
+                        .bouncyClickable(pressedScale = 0.92f, onClick = onDismissRequest),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -119,7 +121,13 @@ fun OtherAppsDialog(
                     shape = RoundedCornerShape(18.dp),
                     color = EmeraldTheme.extended.surfaceTier1,
                     border = BorderStroke(1.dp, EmeraldTheme.extended.glassBorder),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(0)
+                        .bouncyClickable(pressedScale = 0.98f) {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(playStoreUrl))
+                            context.startActivity(intent)
+                        }
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(

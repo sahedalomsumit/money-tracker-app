@@ -1,11 +1,19 @@
 package com.sahed.money_tracker.ui.screens.statistics
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.LaunchedEffect
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -187,6 +195,7 @@ fun AllTimeStatisticsScreen(
                         ),
                         subtitle = "Lifetime total earnings across ${uiState.activeYearsCount} recorded year${if (uiState.activeYearsCount != 1) "s" else ""}",
                         onClick = { showNetSalaryDetail = true },
+                        modifier = Modifier.gentleEntrance(0),
                         icon = {
                             Icon(
                                 imageVector = Icons.Default.AccountBalanceWallet,
@@ -202,7 +211,9 @@ fun AllTimeStatisticsScreen(
                 item(key = "all_time_allocation_grid") {
                     if (activeCategories.isNotEmpty()) {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .gentleEntrance(1),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             activeCategories.chunked(2).forEach { rowItems ->
@@ -235,7 +246,9 @@ fun AllTimeStatisticsScreen(
                 // Section 3: Lifetime Quick Metrics (Entries, Active Years, Average per Year)
                 item(key = "lifetime_metrics") {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .gentleEntrance(2),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         MetricSmallCard(
@@ -267,10 +280,16 @@ fun AllTimeStatisticsScreen(
                 if (uiState.yearlyTotals.isNotEmpty()) {
                     item(key = "yearly_breakdown_card") {
                         val maxYearIncome = uiState.yearlyTotals.values.maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
+                        var playProgressAnimation by remember { mutableStateOf(false) }
+                        LaunchedEffect(uiState.yearlyTotals) {
+                            playProgressAnimation = true
+                        }
 
                         EmeraldGlassCard(
                             cornerRadius = 18.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .gentleEntrance(3)
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
                                 Row(
@@ -313,6 +332,11 @@ fun AllTimeStatisticsScreen(
 
                                 uiState.yearlyTotals.forEach { (year, yearTotal) ->
                                     val ratio = (yearTotal / maxYearIncome).toFloat().coerceIn(0f, 1f)
+                                    val animatedRatio by animateFloatAsState(
+                                        targetValue = if (playProgressAnimation) ratio else 0f,
+                                        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+                                        label = "yearly_ratio_$year"
+                                    )
                                     val percentOfLifetime = if (uiState.allTimeNetSalary > 0) {
                                         (yearTotal / uiState.allTimeNetSalary) * 100.0
                                     } else 0.0
@@ -352,7 +376,7 @@ fun AllTimeStatisticsScreen(
                                         Spacer(modifier = Modifier.height(6.dp))
 
                                         LinearProgressIndicator(
-                                            progress = { ratio },
+                                            progress = { animatedRatio },
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(6.dp)
@@ -371,12 +395,14 @@ fun AllTimeStatisticsScreen(
                 // Section 5: Lifetime Top Income Sources & Sub-Sources (Same as Dashboard)
                 if (uiState.allEntries.isNotEmpty()) {
                     item(key = "all_time_sources_card") {
-                        SourceBreakdownCard(
-                            entries = uiState.allEntries,
-                            totalYearIncome = uiState.allTimeNetSalary,
-                            currencySymbol = uiState.userProfile.currencySymbol,
-                            currencyCode = uiState.userProfile.currencyCode
-                        )
+                        Box(modifier = Modifier.gentleEntrance(4)) {
+                            SourceBreakdownCard(
+                                entries = uiState.allEntries,
+                                totalYearIncome = uiState.allTimeNetSalary,
+                                currencySymbol = uiState.userProfile.currencySymbol,
+                                currencyCode = uiState.userProfile.currencyCode
+                            )
+                        }
                     }
                 }
             }
@@ -482,8 +508,19 @@ private fun AllTimeSourceItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            var playSourceAnimation by remember { mutableStateOf(false) }
+            LaunchedEffect(source) {
+                playSourceAnimation = true
+            }
+            val targetRatio = (source.percentageOfTotal / 100f).toFloat().coerceIn(0f, 1f)
+            val animatedRatio by animateFloatAsState(
+                targetValue = if (playSourceAnimation) targetRatio else 0f,
+                animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+                label = "source_ratio_${source.mainSourceName}"
+            )
+
             LinearProgressIndicator(
-                progress = { (source.percentageOfTotal / 100f).toFloat().coerceIn(0f, 1f) },
+                progress = { animatedRatio },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
@@ -775,13 +812,22 @@ private fun MetricSmallCard(
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
-            )
+            AnimatedContent(
+                targetState = value,
+                transitionSpec = {
+                    (slideInVertically { it / 3 } + fadeIn(tween(280, easing = FastOutSlowInEasing)))
+                        .togetherWith(slideOutVertically { -it / 3 } + fadeOut(tween(180, easing = FastOutSlowInEasing)))
+                },
+                label = "metricValue"
+            ) { targetValue ->
+                Text(
+                    text = targetValue,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
+                )
+            }
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = title,

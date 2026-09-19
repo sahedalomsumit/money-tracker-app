@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.sahed.money_tracker.ui.components.CurrencyPickerDialog
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldPalette
 import com.sahed.money_tracker.ui.designsystem.theme.EmeraldTheme
 import com.sahed.money_tracker.viewmodel.OnboardingViewModel
@@ -99,20 +101,26 @@ fun OnboardingScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Welcome to Money Tracker App",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(0)
+            ) {
+                Text(
+                    text = "Welcome to Money Tracker App",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
 
-            Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = "Let's personalize your currency and profile before you get started.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = "Let's personalize your currency and profile before you get started.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -124,7 +132,9 @@ fun OnboardingScreen(
                     1.2.dp,
                     EmeraldTheme.extended.glassBorder
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .gentleEntrance(1)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -188,115 +198,133 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             // Primary Field: Currency
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Currency *",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                if (uiState.currencyCode.isNotBlank()) {
-                    Text(
-                        text = "Change currency",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = EmeraldPalette.SoftEmerald,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable { showCurrencyPicker = true }
-                            .padding(4.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = EmeraldTheme.extended.surfaceTier1,
-                border = androidx.compose.foundation.BorderStroke(
-                    1.2.dp,
-                    if (uiState.currencyCode.isNotBlank()) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
-                ),
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable { showCurrencyPicker = true }
+                    .gentleEntrance(2)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text(
+                        text = "Currency *",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
                     if (uiState.currencyCode.isNotBlank()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = uiState.currencySymbol,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = EmeraldPalette.SoftEmerald
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = uiState.currencyCode,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    } else {
                         Text(
-                            text = "Select your preferred currency",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Normal,
-                            color = EmeraldTheme.extended.subText
+                            text = "Change currency",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = EmeraldPalette.SoftEmerald,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .bouncyClickable(
+                                    pressedScale = 0.94f,
+                                    onClick = { showCurrencyPicker = true }
+                                )
+                                .padding(4.dp)
                         )
                     }
+                }
 
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Select currency",
-                        tint = EmeraldTheme.extended.subText
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = EmeraldTheme.extended.surfaceTier1,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.2.dp,
+                        if (uiState.currencyCode.isNotBlank()) EmeraldPalette.SoftEmerald else EmeraldTheme.extended.glassBorder
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .bouncyClickable(
+                            pressedScale = 0.98f,
+                            onClick = { showCurrencyPicker = true }
+                        )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.currencyCode.isNotBlank()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = uiState.currencySymbol,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = EmeraldPalette.SoftEmerald
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = uiState.currencyCode,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "Select your preferred currency",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Normal,
+                                color = EmeraldTheme.extended.subText
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select currency",
+                            tint = EmeraldTheme.extended.subText
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(36.dp))
 
             // Confirm & Continue Button
-            Button(
-                onClick = { viewModel.confirmAndContinue() },
-                enabled = uiState.isValid && !uiState.isLoading,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = EmeraldPalette.SoftEmerald,
-                    contentColor = Color.White,
-                    disabledContainerColor = EmeraldTheme.extended.surfaceTier3,
-                    disabledContentColor = EmeraldTheme.extended.subText.copy(alpha = 0.6f)
-                ),
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .gentleEntrance(3)
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Confirm & Continue",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                Button(
+                    onClick = { viewModel.confirmAndContinue() },
+                    enabled = uiState.isValid && !uiState.isLoading,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EmeraldPalette.SoftEmerald,
+                        contentColor = Color.White,
+                        disabledContainerColor = EmeraldTheme.extended.surfaceTier3,
+                        disabledContentColor = EmeraldTheme.extended.subText.copy(alpha = 0.6f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Confirm & Continue",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 

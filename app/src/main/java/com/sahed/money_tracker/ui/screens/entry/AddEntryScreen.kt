@@ -77,6 +77,8 @@ import com.sahed.money_tracker.ui.theme.DonateColor
 import com.sahed.money_tracker.ui.theme.InvestColor
 import com.sahed.money_tracker.ui.theme.RestColor
 import com.sahed.money_tracker.ui.theme.SavingColor
+import com.sahed.money_tracker.ui.designsystem.components.bouncyClickable
+import com.sahed.money_tracker.ui.designsystem.components.gentleEntrance
 import com.sahed.money_tracker.util.CurrencyHelper
 import com.sahed.money_tracker.util.DateUtils
 import com.sahed.money_tracker.util.MathExpressionEvaluator
@@ -204,10 +206,13 @@ fun AddEntryScreen(
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = {
-                            focusManager.clearFocus()
-                            onDismiss()
-                        }),
+                        .bouncyClickable(
+                            pressedScale = 0.92f,
+                            onClick = {
+                                focusManager.clearFocus()
+                                onDismiss()
+                            }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -230,7 +235,9 @@ fun AddEntryScreen(
 
                 // Month and Year Row
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(0),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Month selector
@@ -252,10 +259,13 @@ fun AddEntryScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    focusManager.clearFocus()
-                                    monthDropdownExpanded = true
-                                }
+                                .bouncyClickable(
+                                    pressedScale = 0.98f,
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        monthDropdownExpanded = true
+                                    }
+                                )
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -312,10 +322,13 @@ fun AddEntryScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    focusManager.clearFocus()
-                                    yearDropdownExpanded = true
-                                }
+                                .bouncyClickable(
+                                    pressedScale = 0.98f,
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        yearDropdownExpanded = true
+                                    }
+                                )
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -357,122 +370,128 @@ fun AddEntryScreen(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 // Net Salary Input with Inline Math Expressions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
-                        Surface(
-                            onClick = {
-                                focusManager.clearFocus()
-                                viewModel.evaluateAndApplySalary()
-                            },
-                            shape = RoundedCornerShape(6.dp),
-                            color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
-                        ) {
-                            Text(
-                                text = "= ${CurrencyHelper.format(uiState.salaryAmount, uiState.userProfile.currencySymbol.ifBlank { "$" }, uiState.userProfile.currencyCode)} (Tap to apply)",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = EmeraldPalette.SoftEmerald
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                var isSalaryFocused by remember { mutableStateOf(false) }
-                val salaryFocusRequester = remember { FocusRequester() }
-
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (isSalaryFocused) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                    ),
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .gentleEntrance(1)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                salaryFocusRequester.requestFocus()
-                            }
-                            .padding(horizontal = 14.dp, vertical = 14.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (uiState.salaryInput.isEmpty()) {
-                                Text(
-                                    text = "905.95 or e.g. (33+17)-10",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            BasicTextField(
-                                value = uiState.salaryInput,
-                                onValueChange = { input ->
-                                    if (input.endsWith("=")) {
-                                        viewModel.evaluateAndApplySalary()
-                                        focusManager.clearFocus()
-                                    } else {
-                                        viewModel.setSalaryInput(input)
-                                    }
-                                },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ),
-                                cursorBrush = SolidColor(EmeraldPalette.SoftEmerald),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text,
-                                    imeAction = ImeAction.Done
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onDone = {
-                                        viewModel.evaluateAndApplySalary()
-                                        focusManager.clearFocus()
-                                    }
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(salaryFocusRequester)
-                                    .onFocusChanged { isSalaryFocused = it.isFocused }
-                            )
-                        }
-
+                        Text(
+                            text = "Net Salary (${uiState.userProfile.currencySymbol.ifBlank { "$" }})",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
-                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 onClick = {
                                     focusManager.clearFocus()
                                     viewModel.evaluateAndApplySalary()
                                 },
-                                shape = RoundedCornerShape(8.dp),
-                                color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f))
+                                shape = RoundedCornerShape(6.dp),
+                                color = EmeraldPalette.SoftEmerald.copy(alpha = 0.15f)
                             ) {
                                 Text(
-                                    text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    text = "= ${CurrencyHelper.format(uiState.salaryAmount, uiState.userProfile.currencySymbol.ifBlank { "$" }, uiState.userProfile.currencyCode)} (Tap to apply)",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = EmeraldPalette.SoftEmerald
                                 )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    var isSalaryFocused by remember { mutableStateOf(false) }
+                    val salaryFocusRequester = remember { FocusRequester() }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSalaryFocused) EmeraldPalette.SoftEmerald else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    salaryFocusRequester.requestFocus()
+                                }
+                                .padding(horizontal = 14.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (uiState.salaryInput.isEmpty()) {
+                                    Text(
+                                        text = "905.95 or e.g. (33+17)-10",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                BasicTextField(
+                                    value = uiState.salaryInput,
+                                    onValueChange = { input ->
+                                        if (input.endsWith("=")) {
+                                            viewModel.evaluateAndApplySalary()
+                                            focusManager.clearFocus()
+                                        } else {
+                                            viewModel.setSalaryInput(input)
+                                        }
+                                    },
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    cursorBrush = SolidColor(EmeraldPalette.SoftEmerald),
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Text,
+                                        imeAction = ImeAction.Done
+                                    ),
+                                    keyboardActions = KeyboardActions(
+                                        onDone = {
+                                            viewModel.evaluateAndApplySalary()
+                                            focusManager.clearFocus()
+                                        }
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .focusRequester(salaryFocusRequester)
+                                        .onFocusChanged { isSalaryFocused = it.isFocused }
+                                )
+                            }
+
+                            if (MathExpressionEvaluator.containsOperator(uiState.salaryInput) && uiState.salaryAmount > 0.0) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        viewModel.evaluateAndApplySalary()
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = EmeraldPalette.SoftEmerald.copy(alpha = 0.20f),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPalette.SoftEmerald.copy(alpha = 0.5f))
+                                ) {
+                                    Text(
+                                        text = "= ${MathExpressionEvaluator.formatResult(uiState.salaryAmount)}",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EmeraldPalette.SoftEmerald
+                                    )
+                                }
                             }
                         }
                     }
@@ -481,60 +500,69 @@ fun AddEntryScreen(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 // Main Source Dropdown
-                Text(
-                    text = "Main Source *",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Box {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                focusManager.clearFocus()
-                                mainSourceDropdownExpanded = true
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(2)
+                ) {
+                    Text(
+                        text = "Main Source *",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .bouncyClickable(
+                                    pressedScale = 0.98f,
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        mainSourceDropdownExpanded = true
+                                    }
+                                )
                         ) {
-                            Text(
-                                text = uiState.selectedMainSource?.name ?: "Select Main Source",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (uiState.selectedMainSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = uiState.selectedMainSource?.name ?: "Select Main Source",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (uiState.selectedMainSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                    }
 
-                    DropdownMenu(
-                        expanded = mainSourceDropdownExpanded,
-                        onDismissRequest = { mainSourceDropdownExpanded = false }
-                    ) {
-                        uiState.mainSources.forEach { source ->
-                            DropdownMenuItem(
-                                text = { Text(source.name) },
-                                onClick = {
-                                    focusManager.clearFocus()
-                                    viewModel.selectMainSource(source)
-                                    mainSourceDropdownExpanded = false
-                                }
-                            )
+                        DropdownMenu(
+                            expanded = mainSourceDropdownExpanded,
+                            onDismissRequest = { mainSourceDropdownExpanded = false }
+                        ) {
+                            uiState.mainSources.forEach { source ->
+                                DropdownMenuItem(
+                                    text = { Text(source.name) },
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        viewModel.selectMainSource(source)
+                                        mainSourceDropdownExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -542,102 +570,114 @@ fun AddEntryScreen(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 // Sub-Source Dropdown with inline "+ Add New"
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(3)
                 ) {
-                    Text(
-                        text = "Sub-Source (Optional)",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    if (uiState.selectedMainSource != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable {
-                                    focusManager.clearFocus()
-                                    showAddSubSourceDialog = true
-                                }
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                tint = EmeraldPalette.SoftEmerald,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Add new",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = EmeraldPalette.SoftEmerald
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Box {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                focusManager.clearFocus()
-                                subSourceDropdownExpanded = true
-                            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = uiState.selectedSubSource?.name ?: "None / Direct",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (uiState.selectedSubSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    DropdownMenu(
-                        expanded = subSourceDropdownExpanded,
-                        onDismissRequest = { subSourceDropdownExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("None / Direct") },
-                            onClick = {
-                                focusManager.clearFocus()
-                                viewModel.selectSubSource(null)
-                                subSourceDropdownExpanded = false
-                            }
+                        Text(
+                            text = "Sub-Source (Optional)",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        uiState.subSources.forEach { sub ->
+
+                        if (uiState.selectedMainSource != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .bouncyClickable(
+                                        pressedScale = 0.92f,
+                                        onClick = {
+                                            focusManager.clearFocus()
+                                            showAddSubSourceDialog = true
+                                        }
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = EmeraldPalette.SoftEmerald,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Add new",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = EmeraldPalette.SoftEmerald
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Box {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .bouncyClickable(
+                                    pressedScale = 0.98f,
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        subSourceDropdownExpanded = true
+                                    }
+                                )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = uiState.selectedSubSource?.name ?: "None / Direct",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (uiState.selectedSubSource != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = subSourceDropdownExpanded,
+                            onDismissRequest = { subSourceDropdownExpanded = false }
+                        ) {
                             DropdownMenuItem(
-                                text = { Text(sub.name) },
+                                text = { Text("None / Direct") },
                                 onClick = {
                                     focusManager.clearFocus()
-                                    viewModel.selectSubSource(sub)
+                                    viewModel.selectSubSource(null)
                                     subSourceDropdownExpanded = false
                                 }
                             )
+                            uiState.subSources.forEach { sub ->
+                                DropdownMenuItem(
+                                    text = { Text(sub.name) },
+                                    onClick = {
+                                        focusManager.clearFocus()
+                                        viewModel.selectSubSource(sub)
+                                        subSourceDropdownExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -652,7 +692,9 @@ fun AddEntryScreen(
                         1.dp,
                         MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gentleEntrance(4)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -719,33 +761,39 @@ fun AddEntryScreen(
                 Spacer(modifier = Modifier.height(30.dp))
 
                 // Save Button
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.saveEntry()
-                    },
-                    enabled = uiState.isValid && !uiState.isSaving,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = EmeraldPalette.SoftEmerald,
-                        contentColor = Color.White
-                    ),
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .gentleEntrance(5)
                 ) {
-                    if (uiState.isSaving) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = "Save Entry",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus()
+                            viewModel.saveEntry()
+                        },
+                        enabled = uiState.isValid && !uiState.isSaving,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EmeraldPalette.SoftEmerald,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp)
+                    ) {
+                        if (uiState.isSaving) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Save Entry",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
 
